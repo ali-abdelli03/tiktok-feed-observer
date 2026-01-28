@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Videos - TikTok Scraper</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">Videos</h1>
+                <p class="text-muted">All scraped TikTok videos</p>
+            </div>
+            <div>
+                <span class="badge bg-secondary fs-6" th:text="${videos.totalElements} + ' total'">0 total</span>
+            </div>
+        </div>
+        
+        <!-- Videos Table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">ID</th>
+                                <th>Author</th>
+                                <th>Description</th>
+                                <th>Stats</th>
+                                <th>Type</th>
+                                <th>First Seen</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="video : ${videos.content}">
+                                <td>
+                                    <code class="text-muted small" th:text="${#strings.abbreviate(video.platformId, 12)}">id</code>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
+                                        <div>
+                                            <a th:if="${video.authorHandle != null}" 
+                                               th:href="@{/dashboard/profiles/{handle}(handle=${video.authorHandle})}"
+                                               class="fw-medium text-decoration-none" th:text="'@' + ${video.authorHandle}">@author</a>
+                                            <span th:unless="${video.authorHandle != null}" class="text-muted">Unknown</span>
+                                            <span th:if="${video.authorVerified}" class="badge badge-verified ms-1" title="Verified">✓</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="truncate" th:text="${video.description ?: 'No description'}" th:title="${video.description}">Description</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
+                                        <span class="engagement-stat">💬 <span th:text="${video.comments ?: 0}">0</span></span>
+                                        <span class="engagement-stat">📤 <span th:text="${video.shares ?: 0}">0</span></span>
+                                        <span class="engagement-stat">⭐ <span th:text="${video.saves ?: 0}">0</span></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:if="${video.isAd}" class="badge badge-ad">Ad</span>
+                                    <span th:if="${video.isLive}" class="badge badge-live">Live</span>
+                                    <span th:if="${video.isAi}" class="badge bg-info">AI</span>
+                                    <span th:if="${!video.isAd and !video.isLive and !video.isAi}" class="text-muted">-</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted" th:text="${#temporals.format(video.firstSeenAt, 'MMM d, HH:mm')}">Jan 1, 12:00</small>
+                                </td>
+                                <td>
+                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${videos.content.empty}">
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">🎬</div>
+                                        <h5>No videos yet</h5>
+                                        <p class="text-muted">Start scraping to see videos here</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="card-footer d-flex justify-content-between align-items-center" th:if="${videos.totalPages > 1}">
+                <div class="text-muted">
+                    Showing <span th:text="${videos.number * videos.size + 1}">1</span> - 
+                    <span th:text="${videos.number * videos.size + videos.numberOfElements}">20</span> of 
+                    <span th:text="${videos.totalElements}">100</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/dashboard/videos(page=${currentPage - 1})}">Previous</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, videos.totalPages - 1)}" 
+                            th:if="${i >= currentPage - 2 and i <= currentPage + 2}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/dashboard/videos(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage >= videos.totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/dashboard/videos(page=${currentPage + 1})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <div th:fragment="scripts"></div>
+</body>
+</html>

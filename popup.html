@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Scraper Control</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TikTok Scraper</h1>
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Inactive</span>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2 class="section-title">User Identification</h2>
+            <div class="username-input-group">
+                <input type="text" id="usernameTester" placeholder="Enter your tester username" class="username-input" />
+                <button id="saveUsernameBtn" class="btn btn-save-username">Save</button>
+            </div>
+            <div id="currentUser" class="current-user" style="display: none;">
+                <span class="user-label">Logged as:</span>
+                <span id="displayUsername" class="user-display"></span>
+                <button id="changeUserBtn" class="btn-change-user">Change</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn btn-start">
+                <span class="btn-icon">▶</span>
+                Start Scraper
+            </button>
+            <button id="stopBtn" class="btn btn-stop" disabled>
+                <span class="btn-icon">■</span>
+                Stop Scraper
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <h2 class="section-title">Backend Settings</h2>
+            <div class="backend-input-group">
+                <input type="text" id="backendUrl" placeholder="http://192.168.1.100:8080/api/tiktok" class="username-input" style="font-size: 12px;" />
+                <button id="saveBackendBtn" class="btn-save-username">Save</button>
+            </div>
+            <div id="currentBackend" class="current-user" style="display: none; margin-top: 8px;">
+                <span class="user-label">URL:</span>
+                <span id="displayBackend" class="user-display" style="font-size: 11px; word-break: break-all;"></span>
+                <button id="changeBackendBtn" class="btn-change-user">Edit</button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2 class="section-title">Storage Settings</h2>
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="sendToBackend" checked>
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Send to Backend</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="saveLocally" checked>
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Save Locally</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="stats-grid">
+                <div class="stat-item" data-type="videos">
+                    <span class="stat-value" id="videoCount">0</span>
+                    <span class="stat-label">Videos</span>
+                </div>
+                <div class="stat-item" data-type="comments">
+                    <span class="stat-value" id="commentCount">0</span>
+                    <span class="stat-label">Comments</span>
+                </div>
+                <div class="stat-item" data-type="profiles">
+                    <span class="stat-value" id="profileCount">0</span>
+                    <span class="stat-label">Profiles</span>
+                </div>
+                <div class="stat-item" data-type="searches">
+                    <span class="stat-value" id="searchCount">0</span>
+                    <span class="stat-label">Searches</span>
+                </div>
+                <div class="stat-item" data-type="interactions">
+                    <span class="stat-value" id="interactionCount">0</span>
+                    <span class="stat-label">Interactions</span>
+                </div>
+                <div class="stat-item" data-type="watchtime">
+                    <span class="stat-value" id="watchTimeCount">0</span>
+                    <span class="stat-label">Watch Time</span>
+                </div>
+            </div>
+            <button id="downloadAllBtn" class="btn btn-download">
+                <span class="btn-icon">⬇</span>
+                Download All Data (JSON)
+            </button>
+            <button id="resetBtn" class="btn btn-reset">
+                <span class="btn-icon">🔄</span>
+                Reset All Data
+            </button>
+        </div>
+        
+        <div class="info">
+            <p class="info-text">Control the TikTok data scraper. Manual scrolling required.</p>
+        </div>
+    </div>
+    
+    <!-- Toast notification container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

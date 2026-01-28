@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Profiles - TikTok Scraper</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">Profiles</h1>
+                <p class="text-muted">TikTok content creators</p>
+            </div>
+            <div>
+                <span class="badge bg-secondary fs-6" th:text="${profiles.totalElements} + ' total'">0 total</span>
+            </div>
+        </div>
+        
+        <!-- Profiles Table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Profile</th>
+                                <th>Display Name</th>
+                                <th>Followers</th>
+                                <th>Following</th>
+                                <th>Likes</th>
+                                <th>Videos</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="profile : ${profiles.content}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="author-avatar me-2" th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
+                                        <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}"
+                                           class="fw-medium text-decoration-none" th:text="'@' + ${profile.platformHandle}">@handle</a>
+                                    </div>
+                                </td>
+                                <td th:text="${profile.displayName ?: '-'}">Display Name</td>
+                                <td th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</td>
+                                <td th:text="${profile.followingCount != null} ? ${#numbers.formatInteger(profile.followingCount, 0, 'COMMA')} : '-'">-</td>
+                                <td th:text="${profile.likesCount != null} ? ${#numbers.formatInteger(profile.likesCount, 0, 'COMMA')} : '-'">-</td>
+                                <td th:text="${profile.videoCount ?: 0}">0</td>
+                                <td>
+                                    <span th:if="${profile.isVerified}" class="badge badge-verified">✓ Verified</span>
+                                    <span th:unless="${profile.isVerified}" class="text-muted">-</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${profiles.content.empty}">
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">👤</div>
+                                        <h5>No profiles yet</h5>
+                                        <p class="text-muted">Start scraping to see profiles here</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="card-footer d-flex justify-content-between align-items-center" th:if="${profiles.totalPages > 1}">
+                <div class="text-muted">
+                    Showing <span th:text="${profiles.number * profiles.size + 1}">1</span> - 
+                    <span th:text="${profiles.number * profiles.size + profiles.numberOfElements}">20</span> of 
+                    <span th:text="${profiles.totalElements}">100</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/dashboard/profiles(page=${currentPage - 1})}">Previous</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, profiles.totalPages - 1)}" 
+                            th:if="${i >= currentPage - 2 and i <= currentPage + 2}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/dashboard/profiles(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage >= profiles.totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/dashboard/profiles(page=${currentPage + 1})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <div th:fragment="scripts"></div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Dashboard - TikTok Scraper</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="text-muted">Overview of your TikTok scraping data</p>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+                            🎬
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalVideos}">0</div>
+                            <div class="stat-label">Videos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-6 col-xl-3">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
+                            👤
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalProfiles}">0</div>
+                            <div class="stat-label">Profiles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-6 col-xl-3">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
+                            💬
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalComments}">0</div>
+                            <div class="stat-label">Comments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-6 col-xl-3">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger me-3">
+                            ❤️
+                        </div>
+                        <div>
+                            <div class="stat-value" th:text="${stats.totalLikes}">0</div>
+                            <div class="stat-label">Likes (User)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Secondary Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-lg-4">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3">Content Breakdown</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Ad Videos</span>
+                            <span class="badge badge-ad" th:text="${stats.adVideos}">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Live Streams</span>
+                            <span class="badge badge-live" th:text="${stats.liveVideos}">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Verified Profiles</span>
+                            <span class="badge badge-verified" th:text="${stats.verifiedProfiles}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-6 col-lg-4">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3">Scrapers</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Testers</span>
+                            <span class="fw-bold" th:text="${stats.totalTesters}">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Total Sessions</span>
+                            <span class="fw-bold" th:text="${stats.totalSessions}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-6 col-lg-4">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3">User Actions</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Liked Videos</span>
+                            <span class="fw-bold" th:text="${stats.totalLikes}">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Saved Videos</span>
+                            <span class="fw-bold" th:text="${stats.totalSaves}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Recent Videos -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Videos</h5>
+                        <a th:href="@{/dashboard/videos}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Author</th>
+                                        <th>Description</th>
+                                        <th>Stats</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="video : ${recentVideos}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
+                                                <div>
+                                                    <div class="fw-medium" th:text="${video.authorHandle ?: 'Unknown'}">author</div>
+                                                    <span th:if="${video.authorVerified}" class="badge badge-verified">✓</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="truncate" th:text="${video.description ?: 'No description'}" th:title="${video.description}">Description</div>
+                                        </td>
+                                        <td>
+                                            <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
+                                            <span class="engagement-stat">💬 <span th:text="${video.comments ?: 0}">0</span></span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentVideos)}">
+                                        <td colspan="3" class="text-center text-muted py-4">No videos yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Profiles -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Top Profiles</h5>
+                        <a th:href="@{/dashboard/profiles}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Profile</th>
+                                        <th>Videos</th>
+                                        <th>Followers</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="profile : ${topProfiles}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="author-avatar me-2" th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
+                                                <div>
+                                                    <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}" 
+                                                       class="fw-medium text-decoration-none" th:text="'@' + ${profile.platformHandle}">@handle</a>
+                                                    <span th:if="${profile.isVerified}" class="badge badge-verified ms-1">✓</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td th:text="${profile.videoCount ?: 0}">0</td>
+                                        <td th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(topProfiles)}">
+                                        <td colspan="3" class="text-center text-muted py-4">No profiles yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div th:fragment="scripts">
+        <!-- No additional scripts needed for this page -->
+    </div>
+</body>
+</html>

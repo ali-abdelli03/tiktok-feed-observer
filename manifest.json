@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "TikTok Scraper v6",
+  "version": "6.0.1",
+  "description": "TikTok data scraper with modular architecture",
+
+  "permissions": ["activeTab", "tabs", "scripting", "storage", "tabCapture", "downloads"],
+
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "externally_connectable": {
+    "matches": ["*://www.tiktok.com/*"]
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://www.tiktok.com/*"],
+      "js": [
+        "content/config.js",
+        "content/core.js",
+        "content/context.js",
+        "content/dom-extractor.js",
+        "content/trackers.js",
+        "content/scrapers.js",
+        "content/observers.js",
+        "content/main.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/logo-16.png",
+      "48": "icons/logo-48.png",
+      "128": "icons/logo-128.png"
+    }
+  }
+}

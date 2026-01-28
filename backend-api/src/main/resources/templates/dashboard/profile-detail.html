@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title th:text="'@' + ${profile.platformHandle} + ' - TikTok Scraper'">Profile Detail</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/dashboard/profiles}">Profiles</a></li>
+                <li class="breadcrumb-item active" th:text="'@' + ${profile.platformHandle}">@profile</li>
+            </ol>
+        </nav>
+        
+        <!-- Profile Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="author-avatar" style="width: 80px; height: 80px; font-size: 2rem;"
+                             th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex align-items-center mb-2">
+                            <h2 class="mb-0 me-2" th:text="'@' + ${profile.platformHandle}">@handle</h2>
+                            <span th:if="${profile.isVerified}" class="badge badge-verified">✓ Verified</span>
+                        </div>
+                        <h5 class="text-muted mb-2" th:if="${profile.displayName}" th:text="${profile.displayName}">Display Name</h5>
+                        <p class="mb-2" th:if="${profile.bio}" th:text="${profile.bio}">Bio</p>
+                        <a th:if="${profile.profileLink}" th:href="${profile.profileLink}" target="_blank" class="text-decoration-none">
+                            🔗 <span th:text="${profile.profileLink}">link</span>
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <div class="row g-4 text-center">
+                            <div class="col">
+                                <div class="h4 mb-0" th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</div>
+                                <small class="text-muted">Followers</small>
+                            </div>
+                            <div class="col">
+                                <div class="h4 mb-0" th:text="${profile.followingCount != null} ? ${#numbers.formatInteger(profile.followingCount, 0, 'COMMA')} : '-'">-</div>
+                                <small class="text-muted">Following</small>
+                            </div>
+                            <div class="col">
+                                <div class="h4 mb-0" th:text="${profile.likesCount != null} ? ${#numbers.formatInteger(profile.likesCount, 0, 'COMMA')} : '-'">-</div>
+                                <small class="text-muted">Likes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile's Videos -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Videos (<span th:text="${#lists.size(videos)}">0</span>)</h5>
+            </div>
+            <div class="card-body p-0" th:if="${not #lists.isEmpty(videos)}">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Video ID</th>
+                                <th>Description</th>
+                                <th>Stats</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="video : ${videos}">
+                                <td>
+                                    <code class="text-muted small" th:text="${#strings.abbreviate(video.platformId, 15)}">id</code>
+                                </td>
+                                <td>
+                                    <div class="truncate" th:text="${video.description ?: 'No description'}">Description</div>
+                                </td>
+                                <td>
+                                    <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
+                                    <span class="engagement-stat">💬 <span th:text="${video.comments ?: 0}">0</span></span>
+                                </td>
+                                <td>
+                                    <span th:if="${video.isAd}" class="badge badge-ad">Ad</span>
+                                    <span th:if="${video.isLive}" class="badge badge-live">Live</span>
+                                    <span th:if="${!video.isAd and !video.isLive}" class="text-muted">-</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-body" th:if="${#lists.isEmpty(videos)}">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎬</div>
+                    <p class="text-muted">No videos captured from this profile</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div th:fragment="scripts"></div>
+</body>
+</html>
