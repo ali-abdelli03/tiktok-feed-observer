@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="html(title, content, scripts)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle} ?: 'TikTok Scraper Dashboard'">TikTok Scraper Dashboard</title>
-    
+    <title th:replace="${title}">TikTok Scraper Dashboard</title>
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -15,15 +15,15 @@
             --tiktok-cyan: #25f4ee;
             --tiktok-dark: #161823;
         }
-        
+
         body {
             background-color: #f8f9fa;
         }
-        
+
         .navbar {
             background: linear-gradient(135deg, var(--tiktok-dark) 0%, #2d2d3a 100%);
         }
-        
+
         .navbar-brand {
             font-weight: bold;
             background: linear-gradient(90deg, var(--tiktok-cyan), var(--tiktok-red));
@@ -31,46 +31,46 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .sidebar {
             min-height: calc(100vh - 56px);
             background: white;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
         }
-        
+
         .sidebar .nav-link {
             color: #495057;
             padding: 0.75rem 1rem;
             border-radius: 0.375rem;
             margin: 0.125rem 0.5rem;
         }
-        
+
         .sidebar .nav-link:hover {
             background-color: #f8f9fa;
             color: var(--tiktok-red);
         }
-        
+
         .sidebar .nav-link.active {
             background: linear-gradient(135deg, var(--tiktok-red) 0%, #ff6b8a 100%);
             color: white;
         }
-        
+
         .stat-card {
             border: none;
             border-radius: 0.75rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         .stat-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(0,0,0,0.12);
         }
-        
+
         .stat-card .card-body {
             padding: 1.5rem;
         }
-        
+
         .stat-icon {
             width: 48px;
             height: 48px;
@@ -80,59 +80,59 @@
             justify-content: center;
             font-size: 1.5rem;
         }
-        
+
         .stat-value {
             font-size: 1.75rem;
             font-weight: 700;
             color: var(--tiktok-dark);
         }
-        
+
         .stat-label {
             color: #6c757d;
             font-size: 0.875rem;
         }
-        
+
         .table-responsive {
             border-radius: 0.75rem;
             overflow: hidden;
         }
-        
+
         .table {
             margin-bottom: 0;
         }
-        
+
         .table thead th {
             background-color: #f8f9fa;
             border-bottom: 2px solid #dee2e6;
             font-weight: 600;
             color: #495057;
         }
-        
+
         .badge-verified {
             background: linear-gradient(135deg, #00a8ff 0%, #0090e7 100%);
         }
-        
+
         .badge-ad {
             background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
         }
-        
+
         .badge-live {
             background: linear-gradient(135deg, var(--tiktok-red) 0%, #ff6b8a 100%);
         }
-        
+
         .content-wrapper {
             padding: 1.5rem;
         }
-        
+
         .page-header {
             margin-bottom: 1.5rem;
         }
-        
+
         .page-title {
             font-weight: 700;
             color: var(--tiktok-dark);
         }
-        
+
         .video-thumbnail {
             width: 60px;
             height: 60px;
@@ -143,7 +143,7 @@
             justify-content: center;
             color: #adb5bd;
         }
-        
+
         .author-avatar {
             width: 40px;
             height: 40px;
@@ -155,7 +155,7 @@
             color: white;
             font-weight: 600;
         }
-        
+
         .engagement-stat {
             display: inline-flex;
             align-items: center;
@@ -166,29 +166,29 @@
             font-size: 0.8rem;
             color: #495057;
         }
-        
+
         .pagination .page-link {
             color: var(--tiktok-red);
         }
-        
+
         .pagination .page-item.active .page-link {
             background-color: var(--tiktok-red);
             border-color: var(--tiktok-red);
         }
-        
+
         .truncate {
             max-width: 300px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 3rem;
             color: #6c757d;
         }
-        
+
         .empty-state-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -216,7 +216,7 @@
             </div>
         </div>
     </nav>
-    
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -239,7 +239,7 @@
                     </a>
                 </nav>
             </div>
-            
+
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 content-wrapper">
                 <div th:replace="${content}">
@@ -248,10 +248,10 @@
             </main>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
-    
+
     <!-- Page-specific scripts -->
     <div th:replace="${scripts}"></div>
 </body>
