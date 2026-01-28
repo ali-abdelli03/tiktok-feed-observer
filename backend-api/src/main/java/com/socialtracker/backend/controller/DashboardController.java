@@ -3,6 +3,7 @@ package com.socialtracker.backend.controller;
 import com.socialtracker.backend.dto.response.*;
 import com.socialtracker.backend.entity.*;
 import com.socialtracker.backend.service.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -187,5 +188,10 @@ public class DashboardController {
         }
         
         return "dashboard/search";
+    }
+
+    @ModelAttribute("requestURI")
+    public String getRequestURI(HttpServletRequest request) {
+        return request.getRequestURI();
     }
 }

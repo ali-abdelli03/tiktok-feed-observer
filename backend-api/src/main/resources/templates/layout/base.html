@@ -222,19 +222,33 @@
             <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 d-md-block sidebar py-3">
                 <nav class="nav flex-column">
-                    <a class="nav-link" th:classappend="${#request.requestURI == '/dashboard' or #request.requestURI == '/dashboard/'} ? 'active'" th:href="@{/dashboard}">
+                    <a class="nav-link"
+                       th:classappend="${requestURI == '/dashboard' or requestURI == '/dashboard/'} ? 'active'"
+                       th:href="@{/dashboard}">
                         📊 Dashboard
                     </a>
-                    <a class="nav-link" th:classappend="${#strings.startsWith(#request.requestURI, '/dashboard/videos')} ? 'active'" th:href="@{/dashboard/videos}">
+
+                    <a class="nav-link"
+                       th:classappend="${#strings.startsWith(requestURI, '/dashboard/videos')} ? 'active'"
+                       th:href="@{/dashboard/videos}">
                         🎬 Videos
                     </a>
-                    <a class="nav-link" th:classappend="${#strings.startsWith(#request.requestURI, '/dashboard/profiles')} ? 'active'" th:href="@{/dashboard/profiles}">
+
+                    <a class="nav-link"
+                       th:classappend="${#strings.startsWith(requestURI, '/dashboard/profiles')} ? 'active'"
+                       th:href="@{/dashboard/profiles}">
                         👤 Profiles
                     </a>
-                    <a class="nav-link" th:classappend="${#strings.startsWith(#request.requestURI, '/dashboard/comments')} ? 'active'" th:href="@{/dashboard/comments}">
+
+                    <a class="nav-link"
+                       th:classappend="${#strings.startsWith(requestURI, '/dashboard/comments')} ? 'active'"
+                       th:href="@{/dashboard/comments}">
                         💬 Comments
                     </a>
-                    <a class="nav-link" th:classappend="${#strings.startsWith(#request.requestURI, '/dashboard/search')} ? 'active'" th:href="@{/dashboard/search}">
+
+                    <a class="nav-link"
+                       th:classappend="${#strings.startsWith(requestURI, '/dashboard/search')} ? 'active'"
+                       th:href="@{/dashboard/search}">
                         🔍 Search
                     </a>
                 </nav>
