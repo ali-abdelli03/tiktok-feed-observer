@@ -1,0 +1,13 @@
+# Ignora tutto ciò che inizia con un punto
+.*
+
+# Ignora tutti i file SQL...
+*.sql
+# ...ma NON ignorare quello specifico dentro backend-api (usa il nome esatto del file)
+!backend-api/src/main/resources/schema.sql
+# Ignora i file di build di Java
+/backend-api/target/
+/backend-api/*.class
+
+# Permetti il .gitignore
+!.gitignore

@@ -34,33 +34,62 @@ public class VideoService {
     private final MediaService mediaService;
     private final SessionService sessionService;
     
-    /**
+ /**
      * Ingest a video from the scraper (main entry point)
+     * Ottimizzato per gestire concorrenza e duplicati
      */
     @Transactional
     public Video ingestVideo(ContentDto dto, ScrapingSession session) {
         String platformId = dto.video_id();
+        
+        // 1. Validazione base
         if (platformId == null || platformId.isBlank()) {
             log.warn("Received video without platform ID");
             return null;
         }
         
-        // Find or create video
-        Video video = videoRepository.findByPlatformId(platformId)
-                .orElseGet(() -> createNewVideo(dto));
+        Video video;
         
-        // Update video metadata
+        // 2. Gestione Concorrenza (Try-Recover Pattern)
+        // Cerchiamo se il video esiste già
+        Optional<Video> existing = videoRepository.findByPlatformId(platformId);
+        
+        if (existing.isPresent()) {
+            // Caso A: Il video esiste, lo usiamo
+            video = existing.get();
+        } else {
+            // Caso B: Non esiste, proviamo a crearlo
+            try {
+                Video newVideo = createNewVideo(dto);
+                // Usa saveAndFlush per forzare la scrittura immediata.
+                // Se un altro thread ha creato il video nel frattempo, qui esploderà un'eccezione.
+                video = videoRepository.saveAndFlush(newVideo);
+            } catch (Exception e) {
+                // Caso C: Conflitto! Un altro thread è stato più veloce.
+                // Recuperiamo il video che l'altro thread ha appena creato.
+                log.info("Conflitto di concorrenza risolto per video ID: {}", platformId);
+                video = videoRepository.findByPlatformId(platformId)
+                        .orElseThrow(() -> new RuntimeException("Errore critico: Video impossibile da recuperare dopo conflitto: " + platformId));
+            }
+        }
+        
+        // 3. Aggiornamento Metadati
+        // Ora che abbiamo l'oggetto 'video' sicuro e gestito, aggiorniamo i campi
+        // (es. la descrizione potrebbe essere cambiata, o il numero di like)
         updateVideoMetadata(video, dto);
         
-        // Create stats snapshot (always INSERT for history)
+        // 4. Storicizzazione Statistiche
+        // Salviamo sempre una nuova riga in video_stats per avere lo storico
         createStatsSnapshot(video, dto, session);
         
-        // Increment session counter
+        // 5. Aggiornamento Sessione
         if (session != null) {
             sessionService.incrementVideoCount(session);
         }
         
         log.info("Ingested video: {} by @{}", platformId, dto.author_handle());
+        
+        // Salvataggio finale per persistere gli aggiornamenti ai metadati (fatti al punto 3)
         return videoRepository.save(video);
     }
     
