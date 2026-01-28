@@ -9,7 +9,7 @@
 // ============================================================================
 
 const CONFIG = {
-    defaultBackendUrl: 'http://localhost:8080/api/tiktok',
+    defaultBackendUrl: 'http://localhost:8080/api/v2/tiktok', //'http://localhost:8080/api/tiktok'
     storageLimits: {
         videoData: 10000,
         commentData: 5000,
