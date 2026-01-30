@@ -301,9 +301,14 @@ public class VideoService {
 
         VideoStatsResponseDto statsDto = null;
 
+        // Usa getCapturedAt()
         if (video.getVideoStats() != null && !video.getVideoStats().isEmpty()) {
             VideoStats latest = video.getVideoStats().stream()
-                    .sorted((a, b) -> b.getCapturedAt().compareTo(a.getCapturedAt()))
+                    .sorted((a, b) -> {
+                        if (b.getCapturedAt() == null) return -1;
+                        if (a.getCapturedAt() == null) return 1;
+                        return b.getCapturedAt().compareTo(a.getCapturedAt());
+                    })
                     .findFirst()
                     .orElse(null);
 
@@ -316,39 +321,48 @@ public class VideoService {
                         .commentCount(latest.getComments())
                         .shareCount(latest.getShares())
                         .saveCount(latest.getSaves())
-                        // RIMOSSO: .playCount(...)
                         .likesRaw(latest.getLikesRaw())
-                        .capturedAt(latest.getCapturedAt())
+                        .capturedAt(latest.getCapturedAt()) // Usa capturedAt
                         .build();
             }
         }
 
-        VideoResponseDto.VideoResponseDtoBuilder builder = VideoResponseDto.builder()
+        return VideoResponseDto.builder()
                 .id(video.getId())
                 .platformId(video.getPlatformId())
                 .videoUrl(video.getVideoUrl())
                 .description(video.getDescription())
-                .stats(statsDto) // Ora questo oggetto non ha più playCount
+                .stats(statsDto) // Passa l'oggetto stats corretto
                 .isAd(Boolean.TRUE.equals(video.getIsAd()))
                 .isLive(Boolean.TRUE.equals(video.getIsLive()))
                 .isAi(Boolean.TRUE.equals(video.getIsAi()))
                 .firstSeenAt(video.getFirstSeenAt())
                 .lastUpdatedAt(video.getLastUpdatedAt())
                 .commentCount(video.getComments() != null ? video.getComments().size() : 0)
-                .hashtagCount(video.getHashtags() != null ? video.getHashtags().size() : 0);
+                .hashtagCount(video.getHashtags() != null ? video.getHashtags().size() : 0)
+                .authorHandle(video.getProfile() != null ? video.getProfile().getPlatformHandle() : null)
+                .authorDisplayName(video.getProfile() != null ? video.getProfile().getDisplayName() : null)
+                .authorVerified(video.getProfile() != null ? video.getProfile().getIsVerified() : null)
+                .musicName(video.getMusic() != null ? video.getMusic().getName() : null)
+                .musicUrl(video.getMusic() != null ? video.getMusic().getUrl() : null)
+                .build();
+    }
 
-        if (video.getProfile() != null) {
-            builder.authorHandle(video.getProfile().getPlatformHandle())
-                    .authorDisplayName(video.getProfile().getDisplayName())
-                    .authorVerified(video.getProfile().getIsVerified());
-        }
-
-        if (video.getMusic() != null) {
-            builder.musicName(video.getMusic().getName())
-                    .musicUrl(video.getMusic().getUrl());
-        }
-
-        return builder.build();
+    public VideoStatsResponseDto toStatsDto(VideoStats stats) {
+        return VideoStatsResponseDto.builder()
+                .id(stats.getId())
+                .videoId(stats.getVideo().getId())
+                .videoPlatformId(stats.getVideo().getPlatformId())
+                .likeCount(stats.getLikes())
+                .commentCount(stats.getComments())
+                .shareCount(stats.getShares())
+                .saveCount(stats.getSaves())
+                .likesRaw(stats.getLikesRaw())
+                .commentsRaw(stats.getCommentsRaw())
+                .sharesRaw(stats.getSharesRaw())
+                .savesRaw(stats.getSavesRaw())
+                .capturedAt(stats.getCapturedAt()) // Usa capturedAt
+                .build();
     }
 
     public VideoStatsResponseDto toStatsDto(VideoStats stats) {
