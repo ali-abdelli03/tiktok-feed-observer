@@ -57,7 +57,7 @@
                         <span th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</span>
                     </td>
                     <td class="font-mono text-white small">
-                        <span th:text="${profile.heartCount != null} ? ${#numbers.formatInteger(profile.heartCount, 0, 'COMMA')} : '-'">-</span>
+                        <span th:text="${profile.likesCount != null} ? ${#numbers.formatInteger(profile.likesCount, 0, 'COMMA')} : '-'">-</span>
                     </td>
                     <td>
                                 <span class="badge bg-dark border border-secondary text-secondary font-mono fw-normal"

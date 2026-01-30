@@ -19,7 +19,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class Video {
-    
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,7 +43,10 @@ public class Video {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id")
     private Place place;
-    
+
+    @OneToMany(mappedBy = "video", cascade = CascadeType.ALL)
+    private List<VideoStats> videoStats;
+
     @Column(columnDefinition = "TEXT")
     private String description;
     
@@ -116,5 +120,12 @@ public class Video {
     public void addComment(Comment comment) {
         comments.add(comment);
         comment.setVideo(this);
+    }
+    public java.util.List<VideoStats> getVideoStats() {
+        return this.videoStats;
+    }
+
+    public void setVideoStats(java.util.List<VideoStats> videoStats) {
+        this.videoStats = videoStats;
     }
 }

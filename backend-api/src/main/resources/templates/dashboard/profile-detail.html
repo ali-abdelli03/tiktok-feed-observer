@@ -10,7 +10,7 @@
         <ol class="breadcrumb small font-mono">
             <li class=\"breadcrumb-item\"><a th:href="@{/dashboard}" class="text-secondary text-decoration-none">HOME</a></li>
             <li class=\"breadcrumb-item\"><a th:href="@{/dashboard/profiles}" class="text-secondary text-decoration-none">PROFILES</a></li>
-            <li class=\"breadcrumb-item active text-white" aria-current="page">OVERVIEW</li>
+            <li class="breadcrumb-item active text-white" aria-current="page">OVERVIEW</li>
         </ol>
     </nav>
 
@@ -44,7 +44,7 @@
                 </div>
                 <div>
                     <div class="text-label">Total Likes</div>
-                    <div class="fs-4 fw-bold font-mono text-white" th:text="${profile.heartCount != null ? #numbers.formatInteger(profile.heartCount, 0, 'COMMA') : 'N/A'}">0</div>
+                    <div class="fs-4 fw-bold font-mono text-white" th:text="${profile.likesCount != null ? #numbers.formatInteger(profile.likesCount, 0, 'COMMA') : 'N/A'}">0</div>
                 </div>
                 <div>
                     <div class="text-label">Videos</div>

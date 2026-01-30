@@ -347,24 +347,6 @@ public class VideoService {
                 .musicUrl(video.getMusic() != null ? video.getMusic().getUrl() : null)
                 .build();
     }
-
-    public VideoStatsResponseDto toStatsDto(VideoStats stats) {
-        return VideoStatsResponseDto.builder()
-                .id(stats.getId())
-                .videoId(stats.getVideo().getId())
-                .videoPlatformId(stats.getVideo().getPlatformId())
-                .likeCount(stats.getLikes())
-                .commentCount(stats.getComments())
-                .shareCount(stats.getShares())
-                .saveCount(stats.getSaves())
-                .likesRaw(stats.getLikesRaw())
-                .commentsRaw(stats.getCommentsRaw())
-                .sharesRaw(stats.getSharesRaw())
-                .savesRaw(stats.getSavesRaw())
-                .capturedAt(stats.getCapturedAt()) // Usa capturedAt
-                .build();
-    }
-
     public VideoStatsResponseDto toStatsDto(VideoStats stats) {
         return VideoStatsResponseDto.builder()
                 .id(stats.getId())

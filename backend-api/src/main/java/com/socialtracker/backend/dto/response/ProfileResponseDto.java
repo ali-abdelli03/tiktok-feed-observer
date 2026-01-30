@@ -26,7 +26,7 @@ public class ProfileResponseDto {
     private Long followerCount;
     private Long followingCount;
     private Long likesCount;
-    
+
     // Aggregated data
     private Integer videoCount;
     private Long totalLikes;
