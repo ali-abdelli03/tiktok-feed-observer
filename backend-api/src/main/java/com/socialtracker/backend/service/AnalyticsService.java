@@ -33,6 +33,7 @@ public class AnalyticsService {
                 .totalComments(commentRepository.count())
                 .totalTesters(testerRepository.count())
                 .totalSessions(sessionRepository.count())
+                .totalInteractions(interactionRepository.count())
                 .adVideos(videoRepository.countAds())
                 .liveVideos(videoRepository.countLives())
                 .verifiedProfiles(profileRepository.countVerifiedProfiles())

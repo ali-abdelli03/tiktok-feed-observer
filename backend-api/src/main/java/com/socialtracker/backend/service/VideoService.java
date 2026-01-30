@@ -295,56 +295,71 @@ public class VideoService {
     }
     
     // ========== DTO CONVERSION ==========
-    
+
     public VideoResponseDto toDto(Video video) {
-        Optional<VideoStats> latestStats = videoStatsRepository.findLatestByVideoId(video.getId());
-        
+        if (video == null) return null;
+
+        VideoStatsResponseDto statsDto = null;
+
+        if (video.getVideoStats() != null && !video.getVideoStats().isEmpty()) {
+            VideoStats latest = video.getVideoStats().stream()
+                    .sorted((a, b) -> b.getCapturedAt().compareTo(a.getCapturedAt()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (latest != null) {
+                statsDto = VideoStatsResponseDto.builder()
+                        .id(latest.getId())
+                        .videoId(video.getId())
+                        .videoPlatformId(video.getPlatformId())
+                        .likeCount(latest.getLikes())
+                        .commentCount(latest.getComments())
+                        .shareCount(latest.getShares())
+                        .saveCount(latest.getSaves())
+                        // RIMOSSO: .playCount(...)
+                        .likesRaw(latest.getLikesRaw())
+                        .capturedAt(latest.getCapturedAt())
+                        .build();
+            }
+        }
+
         VideoResponseDto.VideoResponseDtoBuilder builder = VideoResponseDto.builder()
                 .id(video.getId())
                 .platformId(video.getPlatformId())
                 .videoUrl(video.getVideoUrl())
                 .description(video.getDescription())
-                .isAd(video.getIsAd())
-                .isLive(video.getIsLive())
-                .isAi(video.getIsAi())
+                .stats(statsDto) // Ora questo oggetto non ha più playCount
+                .isAd(Boolean.TRUE.equals(video.getIsAd()))
+                .isLive(Boolean.TRUE.equals(video.getIsLive()))
+                .isAi(Boolean.TRUE.equals(video.getIsAi()))
                 .firstSeenAt(video.getFirstSeenAt())
                 .lastUpdatedAt(video.getLastUpdatedAt())
                 .commentCount(video.getComments() != null ? video.getComments().size() : 0)
                 .hashtagCount(video.getHashtags() != null ? video.getHashtags().size() : 0);
-        
-        // Author info
+
         if (video.getProfile() != null) {
             builder.authorHandle(video.getProfile().getPlatformHandle())
                     .authorDisplayName(video.getProfile().getDisplayName())
                     .authorVerified(video.getProfile().getIsVerified());
         }
-        
-        // Music info
+
         if (video.getMusic() != null) {
             builder.musicName(video.getMusic().getName())
                     .musicUrl(video.getMusic().getUrl());
         }
-        
-        // Latest stats
-        latestStats.ifPresent(stats -> builder
-                .likes(stats.getLikes())
-                .comments(stats.getComments())
-                .shares(stats.getShares())
-                .saves(stats.getSaves())
-        );
-        
+
         return builder.build();
     }
-    
+
     public VideoStatsResponseDto toStatsDto(VideoStats stats) {
         return VideoStatsResponseDto.builder()
                 .id(stats.getId())
                 .videoId(stats.getVideo().getId())
                 .videoPlatformId(stats.getVideo().getPlatformId())
-                .likes(stats.getLikes())
-                .comments(stats.getComments())
-                .shares(stats.getShares())
-                .saves(stats.getSaves())
+                .likeCount(stats.getLikes())
+                .commentCount(stats.getComments())
+                .shareCount(stats.getShares())
+                .saveCount(stats.getSaves())
                 .likesRaw(stats.getLikesRaw())
                 .commentsRaw(stats.getCommentsRaw())
                 .sharesRaw(stats.getSharesRaw())

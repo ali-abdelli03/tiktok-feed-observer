@@ -19,16 +19,17 @@ public class DashboardStatsDto {
     private long totalComments;
     private long totalTesters;
     private long totalSessions;
-    
+
     // Content breakdown
     private long adVideos;
     private long liveVideos;
     private long verifiedProfiles;
-    
+
     // Interactions
     private long totalLikes;
     private long totalSaves;
-    
+    private long totalInteractions;
+
     // Recent activity
     private long videosLast24h;
     private long commentsLast24h;

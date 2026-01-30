@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Response DTO for video stats history
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,19 +15,18 @@ public class VideoStatsResponseDto {
     private Long id;
     private Long videoId;
     private String videoPlatformId;
-    
-    // Stats
-    private Long likes;
-    private Long comments;
-    private Long shares;
-    private Long saves;
-    
-    // Raw values
+
+    // Rinomina questi campi per matchare l'HTML (likeCount, commentCount...)
+    private Long likeCount;
+    private Long commentCount;
+    private Long shareCount;
+    private Long saveCount;
+    private Long playCount; // Aggiunto per completezza
+
     private String likesRaw;
     private String commentsRaw;
     private String sharesRaw;
     private String savesRaw;
-    
-    // Timestamp
+
     private LocalDateTime capturedAt;
 }
