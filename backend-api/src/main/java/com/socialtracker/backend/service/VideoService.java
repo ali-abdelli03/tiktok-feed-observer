@@ -33,13 +33,18 @@ public class VideoService {
     private final ProfileService profileService;
     private final MediaService mediaService;
     private final SessionService sessionService;
-    
- /**
+    private final ContentService contentService;
+    /**
      * Ingest a video from the scraper (main entry point)
      * Ottimizzato per gestire concorrenza e duplicati
      */
     @Transactional
     public Video ingestVideo(ContentDto dto, ScrapingSession session) {
+        try {
+            contentService.processContent(dto);
+        } catch (Exception e) {
+            log.warn("Errore durante la stampa del log (non critico): {}", e.getMessage());
+        }
         String platformId = dto.video_id();
         
         // 1. Validazione base
