@@ -19,7 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Propagation;
 /**
  * Service for managing videos and their stats
  */
@@ -33,71 +35,60 @@ public class VideoService {
     private final ProfileService profileService;
     private final MediaService mediaService;
     private final SessionService sessionService;
-    private final ContentService contentService;
+    @Autowired
+    @Lazy
+    private VideoService self;
     /**
      * Ingest a video from the scraper (main entry point)
-     * Ottimizzato per gestire concorrenza e duplicati
+     */
+    /**
+     * Ingest a video from the scraper (main entry point)
      */
     @Transactional
     public Video ingestVideo(ContentDto dto, ScrapingSession session) {
-        try {
-            contentService.processContent(dto);
-        } catch (Exception e) {
-            log.warn("Errore durante la stampa del log (non critico): {}", e.getMessage());
-        }
         String platformId = dto.video_id();
-        
-        // 1. Validazione base
+
+//        // 1. Log to console via ContentService
+//        try {
+//            contentService.processContent(dto);
+//        } catch (Exception e) {
+//            log.warn("Logging error (non-critical): {}", e.getMessage());
+//        }
+
         if (platformId == null || platformId.isBlank()) {
             log.warn("Received video without platform ID");
             return null;
         }
-        
+
         Video video;
-        
-        // 2. Gestione Concorrenza (Try-Recover Pattern)
-        // Cerchiamo se il video esiste già
+
+        // Use the same robust strategy for ingestion
         Optional<Video> existing = videoRepository.findByPlatformId(platformId);
-        
+
         if (existing.isPresent()) {
-            // Caso A: Il video esiste, lo usiamo
             video = existing.get();
         } else {
-            // Caso B: Non esiste, proviamo a crearlo
+            // Even here, we can use the safe creation method
             try {
-                Video newVideo = createNewVideo(dto);
-                // Usa saveAndFlush per forzare la scrittura immediata.
-                // Se un altro thread ha creato il video nel frattempo, qui esploderà un'eccezione.
-                video = videoRepository.saveAndFlush(newVideo);
+                video = self.createSkeletonSafely(platformId);
             } catch (Exception e) {
-                // Caso C: Conflitto! Un altro thread è stato più veloce.
-                // Recuperiamo il video che l'altro thread ha appena creato.
-                log.info("Conflitto di concorrenza risolto per video ID: {}", platformId);
+                log.info("Concurrency conflict during ingestion resolved: {}", platformId);
                 video = videoRepository.findByPlatformId(platformId)
-                        .orElseThrow(() -> new RuntimeException("Errore critico: Video impossibile da recuperare dopo conflitto: " + platformId));
+                        .orElseThrow(() -> new RuntimeException("Critical recovery failure: " + platformId));
             }
         }
-        
-        // 3. Aggiornamento Metadati
-        // Ora che abbiamo l'oggetto 'video' sicuro e gestito, aggiorniamo i campi
-        // (es. la descrizione potrebbe essere cambiata, o il numero di like)
+
+        // Update metadata on the secured video object
         updateVideoMetadata(video, dto);
-        
-        // 4. Storicizzazione Statistiche
-        // Salviamo sempre una nuova riga in video_stats per avere lo storico
         createStatsSnapshot(video, dto, session);
-        
-        // 5. Aggiornamento Sessione
+
         if (session != null) {
             sessionService.incrementVideoCount(session);
         }
-        
-        log.info("Ingested video: {} by @{}", platformId, dto.author_handle());
-        
-        // Salvataggio finale per persistere gli aggiornamenti ai metadati (fatti al punto 3)
+
         return videoRepository.save(video);
     }
-    
+
     private Video createNewVideo(ContentDto dto) {
         return Video.builder()
                 .platformId(dto.video_id())
@@ -169,29 +160,43 @@ public class VideoService {
         }
     }
     /**
-     * Trova un video o crea uno "scheletro" se non esiste ancora.
-     * Usato da BehaviorService e CommentService per gestire dati arrivati in anticipo.
+     * Finds a video or creates a "skeleton" (placeholder) if it doesn't exist.
+     * Used by BehaviorService/CommentService to handle data arriving before the main video ingestion.
      */
     @Transactional
     public Video findOrCreateSkeleton(String platformId) {
-        // 1. Cerca se esiste
+        // 1. Fast Check: Try to find it normally
         Optional<Video> existing = videoRepository.findByPlatformId(platformId);
         if (existing.isPresent()) {
             return existing.get();
         }
 
-        // 2. Se non esiste, crea uno scheletro vuoto
+        // 2. If not found, delegate creation to an ISOLATED transaction
         try {
-            log.info("⚡ Creating skeleton video for ID: {} (Data arrived before video ingestion)", platformId);
-            Video skeleton = Video.builder()
-                    .platformId(platformId)
-                    .build();
-            return videoRepository.saveAndFlush(skeleton);
+            return self.createSkeletonSafely(platformId);
         } catch (Exception e) {
-            // 3. Gestione race condition: se un altro thread lo ha appena creato
+            // 3. CATCH: If we are here, another thread created the video milliseconds before us.
+            // Because we used REQUIRES_NEW, the current Hibernate session is CLEAN (no bad entities).
+            log.info("Race condition resolved for video skeleton: {}", platformId);
+
             return videoRepository.findByPlatformId(platformId)
-                    .orElseThrow(() -> new RuntimeException("Critical: Could not find or create video " + platformId));
+                    .orElseThrow(() -> new RuntimeException("Critical: Could not recover video " + platformId + " after concurrency conflict"));
         }
+    }
+    /**
+     * Helper method to create a skeleton in an ISOLATED transaction.
+     * Propagation.REQUIRES_NEW suspends the current transaction and starts a fresh one.
+     * If this fails (Duplicate Key), it rolls back cleanly without polluting the main session.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Video createSkeletonSafely(String platformId) {
+        log.info("⚡ Creating skeleton video (Isolated): {}", platformId);
+        Video skeleton = Video.builder()
+                .platformId(platformId)
+                .firstSeenAt(LocalDateTime.now())
+                .build();
+        // saveAndFlush forces immediate DB execution to catch constraints early
+        return videoRepository.saveAndFlush(skeleton);
     }
     private void createStatsSnapshot(Video video, ContentDto dto, ScrapingSession session) {
         VideoStats stats = VideoStats.builder()
