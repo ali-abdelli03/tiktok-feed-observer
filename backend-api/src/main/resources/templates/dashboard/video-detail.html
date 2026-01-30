@@ -46,6 +46,36 @@
                             <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.commentCount ?: 0}">0</div>
                         </div>
                     </div>
+
+                    <div class="col-12">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark" style="min-height: 250px;">
+                            <h5 class="mb-3" style="font-size: 0.9rem;">Intensity <span class="badge bg-dark border border-secondary ms-1" th:text="${#lists.size(video.watchHistory)}">0</span></h5>
+                            <div style="height: 180px;">
+                                <canvas id="watchTimeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark position-relative overflow-hidden">
+                            <div style="position: absolute; right: 0; top: 0; width: 60px; height: 60px; background: radial-gradient(circle, var(--neon-pink), transparent 70%); opacity: 0.2;"></div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="text-label text-warning">Total Watch Time</div>
+                                    <div class="fs-3 fw-bold text-white font-mono">
+                                        <span th:text="${#numbers.formatDecimal(video.totalWatchTimeMs / 1000.0, 1, 1)}">0.0</span>s
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-label">Avg. Session</div>
+                                    <div class="text-secondary font-mono small">
+                                        <span th:text="${#numbers.formatDecimal(video.averageWatchTimeMs / 1000.0, 1, 1)}">0.0</span>s
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-6">
                         <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
                             <div class="text-label">Shares</div>
@@ -59,7 +89,7 @@
                     <div class="font-mono small text-secondary mt-2">
                         <div>INGESTED: <span class="text-white" th:text="${#temporals.format(video.firstSeenAt, 'yyyy-MM-dd HH:mm:ss')}"></span></div>
                         <div>DURATION: <span class="text-white" th:text="${video.duration != null ? video.duration + 'ms' : 'N/A'}"></span></div>
-                        <div>MUSIC: <span class="text-white" th:text="${video.music?.title ?: 'Original Sound'}"></span></div>
+                        <div>MUSIC: <span class="text-white" th:text="${video.musicName ?: 'Original Sound'}"></span></div>
                     </div>
                 </div>
             </div>
@@ -99,6 +129,73 @@
     </div>
 </div>
 
-<div th:fragment="scripts"></div>
+<div th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('watchTimeChart').getContext('2d');
+
+            // Safe null check
+            const history = /*[[${video.watchHistory}]]*/ [];
+
+            if (!history || history.length === 0) {
+                // Opzionale: Mostra un messaggio vuoto o nascondi il canvas se non ci sono dati
+                return;
+            }
+
+            // Ordina per data
+            history.sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+
+            const labels = history.map(h => {
+                const date = new Date(h.recordedAt);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            });
+
+            const dataPoints = history.map(h => h.durationMs / 1000); // Ms -> Secondi
+            const testers = history.map(h => h.testerUsername);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Watch Duration (seconds)',
+                        data: dataPoints,
+                        backgroundColor: 'rgba(236, 72, 153, 0.5)', // Neon Pink
+                        borderColor: '#ec4899',
+                        borderWidth: 1,
+                        barThickness: 10,  // Barre più sottili dato che lo spazio è ridotto
+                        maxBarThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const tester = testers[context.dataIndex];
+                                    return ` ${context.raw}s by ${tester}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#6b7280', font: { size: 10 } }
+                        },
+                        x: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</div>
 </body>
 </html>

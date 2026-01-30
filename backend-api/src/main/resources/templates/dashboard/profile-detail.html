@@ -1,114 +1,228 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="html(title, content, scripts)">
 <head>
-    <title th:text="${profile.platformHandle} + ' • Observer'">Profile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">TikTok Analytics</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            /* --- THEME PALETTE: Deep Cosmos --- */
+            --bg-app: #050507;          /* Almost black */
+            --bg-sidebar: #0a0a0f;      /* Very dark indigo tint */
+            --bg-surface: rgba(255, 255, 255, 0.03);
+            --bg-surface-hover: rgba(255, 255, 255, 0.07);
+
+            --border-color: #272735;
+            --border-highlight: #ff0050;
+
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+
+            /* --- ACCENTS: The "Wow" Factor --- */
+            --neon-pink: #ec4899;
+            --neon-purple: #8b5cf6;
+            --neon-red: #ff0050;
+
+            /* The Master Gradient */
+            --brand-gradient: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-red));
+            --brand-glow: 0 0 25px rgba(236, 72, 153, 0.2);
+
+            /* Dimensions */
+            --sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            padding: 1.5rem 1rem;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .brand-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+            margin-bottom: 2.5rem;
+            display: block;
+            padding-left: 0.75rem;
+        }
+
+        .brand-logo span {
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.4));
+        }
+
+        /* Nav Links */
+        .nav-link {
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface);
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(236, 72, 153, 0.1), transparent);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+        }
+
+        .nav-link.active i { color: var(--neon-pink); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2.5rem;
+            /* Subtle background mesh gradient */
+            background-image:
+                radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 0% 100%, rgba(255, 0, 80, 0.05) 0%, transparent 25%);
+        }
+
+        /* --- PREMIUM CARDS --- */
+        .glass-panel {
+            background: rgba(20, 20, 25, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* --- TYPOGRAPHY & UTILS --- */
+        h1, h2, h3, h4 { letter-spacing: -0.02em; font-weight: 700; color: #fff; }
+        .text-label { text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 0.5rem; display: block; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Gradients Text Utility */
+        .text-gradient-purple { background: linear-gradient(to right, #c084fc, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-gradient-red { background: linear-gradient(to right, #f472b6, #ff0050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* --- TABLES --- */
+        .table-custom { --bs-table-bg: transparent; --bs-table-color: var(--text-secondary); --bs-table-border-color: var(--border-color); }
+        .table-custom th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); font-weight: 600; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        .table-custom td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .table-custom tr:hover td { background: var(--bg-surface); color: white; }
+
+        /* --- BUTTONS --- */
+        .btn-glow {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-glow:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+            color: white;
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-app); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-purple); }
+    </style>
 </head>
 <body>
-<div th:fragment="content">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb small font-mono">
-            <li class=\"breadcrumb-item\"><a th:href="@{/dashboard}" class="text-secondary text-decoration-none">HOME</a></li>
-            <li class=\"breadcrumb-item\"><a th:href="@{/dashboard/profiles}" class="text-secondary text-decoration-none">PROFILES</a></li>
-            <li class="breadcrumb-item active text-white" aria-current="page">OVERVIEW</li>
-        </ol>
-    </nav>
 
-    <div class="glass-panel mb-4 position-relative overflow-hidden p-4">
-        <div style="position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; background: radial-gradient(circle, rgba(139, 92, 246, 0.1), transparent 60%); transform: rotate(15deg);"></div>
+<div class="app-container">
+    <aside class="sidebar">
+        <a class="brand-logo" th:href="@{/dashboard}">
+            <i class="bi bi-cpu-fill me-2"></i><span>OBSERVER</span>
+        </a>
 
-        <div class="d-flex flex-wrap align-items-center justify-content-between position-relative z-1">
-            <div class="d-flex align-items-center gap-4">
-                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg border border-2 border-dark"
-                     style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); font-size: 2.5rem; color: white; font-weight: 800;"
-                     th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">
-                    A
-                </div>
-                <div>
-                    <h1 class="display-6 fw-bold mb-0 d-flex align-items-center gap-2">
-                        <span th:text="${profile.platformHandle}">handle</span>
-                        <i th:if="${profile.isVerified}" class="bi bi-patch-check-fill text-primary fs-5" title="Verified"></i>
-                    </h1>
-                    <p class="text-secondary mb-2" th:text="${profile.displayName}">Display Name</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-dark border border-secondary text-secondary" th:text="${profile.platformId}">ID: 12345</span>
-                        <span class="badge bg-dark border border-secondary text-secondary">TikTok</span>
-                    </div>
-                </div>
-            </div>
+        <div class="text-label px-3 mt-4">Platform</div>
+        <nav class="nav flex-column mt-2">
+            <a class="nav-link" th:classappend="${requestURI == '/dashboard' or requestURI == '/dashboard/'} ? 'active'" th:href="@{/dashboard}">
+                <i class="bi bi-speedometer2"></i> Mission Control
+            </a>
+            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/videos')} ? 'active'" th:href="@{/dashboard/videos}">
+                <i class="bi bi-collection-play"></i> Video Feed
+            </a>
+            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/profiles')} ? 'active'" th:href="@{/dashboard/profiles}">
+                <i class="bi bi-person-bounding-box"></i> Creators
+            </a>
+        </nav>
 
-            <div class="d-flex gap-5 text-end mt-4 mt-lg-0">
-                <div>
-                    <div class="text-label">Followers</div>
-                    <div class="fs-4 fw-bold font-mono text-white" th:text="${profile.followerCount != null ? #numbers.formatInteger(profile.followerCount, 0, 'COMMA') : 'N/A'}">0</div>
-                </div>
-                <div>
-                    <div class="text-label">Total Likes</div>
-                    <div class="fs-4 fw-bold font-mono text-white" th:text="${profile.likesCount != null ? #numbers.formatInteger(profile.likesCount, 0, 'COMMA') : 'N/A'}">0</div>
-                </div>
-                <div>
-                    <div class="text-label">Videos</div>
-                    <div class="fs-4 fw-bold font-mono text-white" th:text="${profile.videoCount}">0</div>
+        <div class="text-label px-3 mt-4">Intelligence</div>
+        <nav class="nav flex-column mt-2">
+            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/comments')} ? 'active'" th:href="@{/dashboard/comments}">
+                <i class="bi bi-chat-left-text"></i> Comments
+            </a>
+            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/testers')} ? 'active'" th:href="@{/dashboard/testers}">
+                <i class="bi bi-people-fill"></i> Testers
+            </a>
+            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/search')} ? 'active'" th:href="@{/dashboard/search}">
+                <i class="bi bi-binoculars"></i> Search Logs
+            </a>
+        </nav>
+
+        <div class="mt-auto px-2">
+            <div class="glass-panel p-3 d-flex align-items-center gap-3" style="background: rgba(0,0,0,0.4); border: 1px solid #1f1f27;">
+                <div class="rounded-circle" style="width: 8px; height: 8px; background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);"></div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                    <div>Engine Online</div>
+                    <div style="color: var(--text-tertiary); font-size: 0.65rem;">Latency: 24ms</div>
                 </div>
             </div>
         </div>
+    </aside>
 
-        <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
-            <p class="text-secondary small mb-0" style="max-width: 800px;" th:text="${profile.signature ?: 'No bio available.'}">Bio...</p>
-        </div>
-    </div>
-
-    <h4 class="mb-3">Content History</h4>
-    <div class="glass-panel p-0 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-custom mb-0">
-                <thead>
-                <tr>
-                    <th class="ps-4">Video Asset</th>
-                    <th>Description</th>
-                    <th>Engagement</th>
-                    <th>Tags</th>
-                    <th class="text-end pe-4">Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="video : ${videos}">
-                    <td class="ps-4">
-                        <div class="d-flex flex-column">
-                            <span class="font-mono text-white small" th:text="${video.platformId}">ID</span>
-                            <span class="text-tertiary small" th:text="${#temporals.format(video.firstSeenAt, 'MMM d, yyyy')}">Date</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="text-secondary small text-truncate" style="max-width: 250px;" th:text="${video.description}">Desc</div>
-                    </td>
-                    <td>
-                        <div class="d-flex gap-3 small text-white">
-                            <span><i class="bi bi-heart-fill text-danger me-1"></i> <span th:text="${video.likes ?: 0}">0</span></span>
-                            <span><i class="bi bi-chat-fill text-info me-1"></i> <span th:text="${video.comments ?: 0}">0</span></span>
-                        </div>
-                    </td>
-                    <td>
-                        <span th:if="${video.isAd}" class="badge bg-warning-subtle text-warning border-warning">AD</span>
-                        <span th:if="${video.isLive}" class="badge bg-danger-subtle text-danger border-danger">LIVE</span>
-                        <span th:if="${!video.isAd and !video.isLive}" class="text-muted small">-</span>
-                    </td>
-                    <td class="text-end pe-4">
-                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn btn-sm btn-outline-secondary border-secondary text-white">View Data</a>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(videos)}">
-                    <td colspan="5" class="text-center py-5">
-                        <div class="text-muted opacity-50 mb-2" style="font-size: 2rem;"><i class="bi bi-camera-video-off"></i></div>
-                        <div class="text-secondary">No media indexed for this profile</div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <main class="main-content">
+        <div th:replace="${content}"></div>
+    </main>
 </div>
 
-<div th:fragment="scripts"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="${scripts}"></div>
+
 </body>
 </html>

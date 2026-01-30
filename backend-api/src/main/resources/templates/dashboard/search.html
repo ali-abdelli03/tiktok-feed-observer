@@ -10,7 +10,7 @@
     <div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
         <div class="text-center mb-5">
             <h1 class="display-5 fw-bold mb-3">Database Search</h1>
-            <p class="text-secondary">Query the ingestion engine across videos, profiles, and logs.</p>
+            <p class="text-secondary">Query the ingestion engine across videos, profiles, and testers.</p>
         </div>
 
         <div class="glass-panel p-4 mb-5">
@@ -30,6 +30,10 @@
                     <div class="form-check">
                         <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeProfiles" value="profiles" th:checked="${type == 'profiles'}">
                         <label class="form-check-label text-secondary" for="typeProfiles">Profiles</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeTesters" value="testers" th:checked="${type == 'testers'}">
+                        <label class="form-check-label text-secondary" for="typeTesters">Testers</label>
                     </div>
                 </div>
             </form>
@@ -80,6 +84,25 @@
                         <td class="text-secondary small" th:text="${profile.displayName}">Name</td>
                         <td class="font-mono text-white small" th:text="${profile.followerCount}">0</td>
                         <td class="text-end pe-4"><a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}" class="text-decoration-none text-danger fw-bold small">VIEW</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${type == 'testers'}" class="glass-panel p-0 overflow-hidden">
+                <table class="table table-custom mb-0">
+                    <thead>
+                    <tr>
+                        <th class="ps-4">Username</th>
+                        <th>Last Active</th>
+                        <th>Total Sessions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tester : ${results}">
+                        <td class="ps-4 text-white fw-bold" th:text="${tester.username}">Username</td>
+                        <td class="text-secondary font-mono small" th:text="${#temporals.format(tester.lastActiveAt, 'yyyy-MM-dd HH:mm')}">Time</td>
+                        <td class="text-white" th:text="${#lists.size(tester.sessions)}">0</td>
                     </tr>
                     </tbody>
                 </table>

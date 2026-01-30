@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Testers • Observer</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Network Agents</h2>
+            <p class="text-secondary mb-0">Active scraper instances reporting data.</p>
+        </div>
+        <span class="badge bg-dark border border-secondary text-secondary font-mono" th:text="${#lists.size(testers) + ' NODES ONLINE'}">0 NODES</span>
+    </div>
+
+    <div class="glass-panel p-0 overflow-hidden">
+        <table class="table table-custom mb-0">
+            <thead>
+            <tr>
+                <th class="ps-4">Status</th>
+                <th>Agent ID</th>
+                <th>Sessions</th>
+                <th>Last Heartbeat</th>
+                <th class="text-end pe-4">Activity</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tester : ${testers}">
+                <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle" style="width: 8px; height: 8px;"
+                             th:styleappend="${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1)) ? 'background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);' : 'background: var(--text-tertiary);'}">
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="text-white fw-bold font-mono" th:text="${tester.username}">user</span>
+                </td>
+                <td>
+                    <span class="badge bg-dark border border-secondary text-secondary" th:text="${#lists.size(tester.sessions)}">0</span>
+                </td>
+                <td class="font-mono text-secondary small" th:text="${tester.lastActiveAt != null ? #temporals.format(tester.lastActiveAt, 'yyyy-MM-dd HH:mm:ss') : 'Never'}">
+                    Time
+                </td>
+                <td class="text-end pe-4">
+                    <div class="progress" style="height: 4px; width: 100px; display: inline-flex; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:fragment="scripts"></div>
+</body>
+</html>

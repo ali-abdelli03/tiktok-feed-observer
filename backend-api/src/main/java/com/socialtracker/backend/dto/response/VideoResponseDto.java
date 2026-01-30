@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,15 +17,16 @@ public class VideoResponseDto {
     private String platformId;
     private String videoUrl;
     private String description;
+    private Long duration;
 
     // Author info
     private String authorHandle;
     private String authorDisplayName;
     private Boolean authorVerified;
 
-    // --- CAMPO FONDAMENTALE MANCANTE ---
+
     private VideoStatsResponseDto stats;
-    // -----------------------------------
+
 
     // Flags
     private boolean isAd;
@@ -42,4 +44,18 @@ public class VideoResponseDto {
     // Counts (opzionali, usati per liste veloci)
     private Integer commentCount;
     private Integer hashtagCount;
+
+    private Long totalWatchTimeMs;
+    private Double averageWatchTimeMs;
+    private List<WatchTimeLog> watchHistory;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WatchTimeLog {
+        private LocalDateTime recordedAt;
+        private Long durationMs;
+        private String testerUsername;
+    }
 }

@@ -6,6 +6,7 @@ import com.socialtracker.backend.dto.response.VideoStatsResponseDto;
 import com.socialtracker.backend.entity.*;
 import com.socialtracker.backend.repository.VideoRepository;
 import com.socialtracker.backend.repository.VideoStatsRepository;
+import com.socialtracker.backend.repository.WatchTimeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class VideoService {
     
     private final VideoRepository videoRepository;
@@ -35,6 +37,8 @@ public class VideoService {
     private final ProfileService profileService;
     private final MediaService mediaService;
     private final SessionService sessionService;
+    private final WatchTimeRepository watchTimeRepository;
+
     @Autowired
     @Lazy
     private VideoService self;
@@ -301,6 +305,20 @@ public class VideoService {
 
         VideoStatsResponseDto statsDto = null;
 
+        Long totalWatch = watchTimeRepository.getTotalWatchTimeForVideo(video.getId());
+        Double avgWatch = watchTimeRepository.getAverageWatchTimeForVideo(video.getId());
+
+        // Mappa lo storico per il grafico
+        List<VideoResponseDto.WatchTimeLog> watchHistory = watchTimeRepository.findByVideoId(video.getId())
+                .stream()
+                .map(wt -> VideoResponseDto.WatchTimeLog.builder()
+                        .recordedAt(wt.getRecordedAt())
+                        .durationMs(wt.getDurationMs())
+                        .testerUsername(wt.getSession() != null && wt.getSession().getTester() != null
+                                ? wt.getSession().getTester().getUsername()
+                                : "Anonymous")
+                        .build())
+                .collect(Collectors.toList());
         // Usa getCapturedAt()
         if (video.getVideoStats() != null && !video.getVideoStats().isEmpty()) {
             VideoStats latest = video.getVideoStats().stream()
@@ -345,6 +363,9 @@ public class VideoService {
                 .authorVerified(video.getProfile() != null ? video.getProfile().getIsVerified() : null)
                 .musicName(video.getMusic() != null ? video.getMusic().getName() : null)
                 .musicUrl(video.getMusic() != null ? video.getMusic().getUrl() : null)
+                .totalWatchTimeMs(totalWatch != null ? totalWatch : 0L)
+                .averageWatchTimeMs(avgWatch != null ? avgWatch : 0.0)
+                .watchHistory(watchHistory)
                 .build();
     }
     public VideoStatsResponseDto toStatsDto(VideoStats stats) {
