@@ -1,119 +1,99 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Videos - TikTok Scraper</title>
+    <title>Video Feed • Observer</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <!-- Page Header -->
-        <div class="page-header d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="page-title">Videos</h1>
-                <p class="text-muted">All scraped TikTok videos</p>
-            </div>
-            <div>
-                <span class="badge bg-secondary fs-6" th:text="${videos.totalElements} + ' total'">0 total</span>
-            </div>
+
+<div th:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Video Feed</h2>
+            <p class="text-secondary m-0">Global ingestion history and metadata.</p>
         </div>
-        
-        <!-- Videos Table -->
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 80px;">ID</th>
-                                <th>Author</th>
-                                <th>Description</th>
-                                <th>Stats</th>
-                                <th>Type</th>
-                                <th>First Seen</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="video : ${videos.content}">
-                                <td>
-                                    <code class="text-muted small" th:text="${#strings.abbreviate(video.platformId, 12)}">id</code>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                                        <div>
-                                            <a th:if="${video.authorHandle != null}" 
-                                               th:href="@{/dashboard/profiles/{handle}(handle=${video.authorHandle})}"
-                                               class="fw-medium text-decoration-none" th:text="'@' + ${video.authorHandle}">@author</a>
-                                            <span th:unless="${video.authorHandle != null}" class="text-muted">Unknown</span>
-                                            <span th:if="${video.authorVerified}" class="badge badge-verified ms-1" title="Verified">✓</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="truncate" th:text="${video.description ?: 'No description'}" th:title="${video.description}">Description</div>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
-                                        <span class="engagement-stat">💬 <span th:text="${video.comments ?: 0}">0</span></span>
-                                        <span class="engagement-stat">📤 <span th:text="${video.shares ?: 0}">0</span></span>
-                                        <span class="engagement-stat">⭐ <span th:text="${video.saves ?: 0}">0</span></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span th:if="${video.isAd}" class="badge badge-ad">Ad</span>
-                                    <span th:if="${video.isLive}" class="badge badge-live">Live</span>
-                                    <span th:if="${video.isAi}" class="badge bg-info">AI</span>
-                                    <span th:if="${!video.isAd and !video.isLive and !video.isAi}" class="text-muted">-</span>
-                                </td>
-                                <td>
-                                    <small class="text-muted" th:text="${#temporals.format(video.firstSeenAt, 'MMM d, HH:mm')}">Jan 1, 12:00</small>
-                                </td>
-                                <td>
-                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn btn-sm btn-outline-primary">View</a>
-                                </td>
-                            </tr>
-                            <tr th:if="${videos.content.empty}">
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon">🎬</div>
-                                        <h5>No videos yet</h5>
-                                        <p class="text-muted">Start scraping to see videos here</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+
+        <form class="d-flex gap-2" th:action="@{/dashboard/search}">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" class="form-control bg-dark text-white border-secondary" placeholder="Filter by ID, Author..." style="min-width: 300px;">
+                <input type="hidden" name="type" value="videos">
             </div>
-            
-            <!-- Pagination -->
-            <div class="card-footer d-flex justify-content-between align-items-center" th:if="${videos.totalPages > 1}">
-                <div class="text-muted">
-                    Showing <span th:text="${videos.number * videos.size + 1}">1</span> - 
-                    <span th:text="${videos.number * videos.size + videos.numberOfElements}">20</span> of 
-                    <span th:text="${videos.totalElements}">100</span>
-                </div>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/dashboard/videos(page=${currentPage - 1})}">Previous</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, videos.totalPages - 1)}" 
-                            th:if="${i >= currentPage - 2 and i <= currentPage + 2}"
-                            th:classappend="${i == currentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/dashboard/videos(page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                        <li class="page-item" th:classappend="${currentPage >= videos.totalPages - 1} ? 'disabled'">
-                            <a class="page-link" th:href="@{/dashboard/videos(page=${currentPage + 1})}">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+        </form>
+    </div>
+
+    <div class="glass-panel p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                <tr>
+                    <th class="ps-4" style="width: 25%;">Video Asset</th>
+                    <th style="width: 20%;">Creator</th>
+                    <th style="width: 25%;">Context / Desc</th>
+                    <th style="width: 15%;">Performance</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="video : ${videos}">
+                    <td class="ps-4">
+                        <div class="d-flex flex-column">
+                            <span class="font-mono text-white small mb-1" th:text="${video.platformId}">ID</span>
+                            <span class="badge rounded-pill bg-dark border border-secondary text-secondary fw-normal"
+                                  style="width: fit-content; font-size: 0.65rem;"
+                                  th:text="${#temporals.format(video.firstSeenAt, 'MMM dd • HH:mm')}">Date</span>
+                        </div>
+                    </td>
+                    <td>
+                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-decoration-none">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-gradient" style="width: 8px; height: 8px; background: var(--neon-purple);"></div>
+                                <span class="text-white small fw-medium" th:text="${video.authorHandle}">@user</span>
+                            </div>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="text-secondary small text-truncate" style="max-width: 300px; opacity: 0.8;"
+                             th:text="${video.description}">Description content...</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="bi bi-heart-fill text-danger" style="font-size: 0.7rem;"></i>
+                                <span class="font-mono small text-white" th:text="${video.stats?.likeCount}">0</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="bi bi-chat-fill text-primary" style="font-size: 0.7rem;"></i>
+                                <span class="font-mono small text-white" th:text="${video.stats?.commentCount}">0</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-end pe-4">
+                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}"
+                           class="btn btn-sm btn-outline-secondary border-secondary text-white"
+                           style="font-size: 0.75rem;">
+                            Analyze
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top border-secondary border-opacity-10">
+            <span class="text-tertiary small font-mono">
+                PAGE <span th:text="${videos.number + 1}">1</span> / <span th:text="${videos.totalPages}">10</span>
+            </span>
+            <div class="btn-group">
+                <a th:if="${videos.hasPrevious()}" th:href="@{/dashboard/videos(page=${videos.number - 1})}" class="btn btn-sm btn-outline-secondary text-white">Previous</a>
+                <a th:if="${videos.hasNext()}" th:href="@{/dashboard/videos(page=${videos.number + 1})}" class="btn btn-sm btn-outline-secondary text-white">Next</a>
             </div>
         </div>
     </div>
-    
-    <div th:fragment="scripts"></div>
+</div>
+
+<div th:fragment="scripts"></div>
+
 </body>
 </html>

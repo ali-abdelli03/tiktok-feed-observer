@@ -2,126 +2,97 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Search - TikTok Scraper</title>
+    <title>Search • Observer</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Search</h1>
-            <p class="text-muted">Search through scraped data</p>
+<div th:fragment="content">
+
+    <div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold mb-3">Database Search</h1>
+            <p class="text-secondary">Query the ingestion engine across videos, profiles, and logs.</p>
         </div>
-        
-        <!-- Search Form -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form th:action="@{/dashboard/search}" method="get" class="row g-3">
-                    <div class="col-md-8">
-                        <input type="text" name="q" class="form-control form-control-lg" 
-                               placeholder="Search videos or profiles..." th:value="${query}">
+
+        <div class="glass-panel p-4 mb-5">
+            <form th:action="@{/dashboard/search}" method="get">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control bg-dark border-secondary text-white"
+                           placeholder="Enter keywords, hashtags, IDs, or usernames..."
+                           th:value="${query}" style="box-shadow: none;">
+                    <button class="btn btn-glow px-4" type="submit">Search</button>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeVideos" value="videos" th:checked="${type == 'videos'}">
+                        <label class="form-check-label text-secondary" for="typeVideos">Videos</label>
                     </div>
-                    <div class="col-md-2">
-                        <select name="type" class="form-select form-select-lg">
-                            <option value="videos" th:selected="${type == 'videos'}">Videos</option>
-                            <option value="profiles" th:selected="${type == 'profiles'}">Profiles</option>
-                        </select>
+                    <div class="form-check">
+                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeProfiles" value="profiles" th:checked="${type == 'profiles'}">
+                        <label class="form-check-label text-secondary" for="typeProfiles">Profiles</label>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary btn-lg w-100">Search</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
-        
-        <!-- Results -->
-        <div th:if="${query != null and query != ''}">
-            <h5 class="mb-3">Results for "<span th:text="${query}">query</span>"</h5>
-            
-            <!-- Video Results -->
-            <div th:if="${type == 'videos' and results != null}" class="card">
-                <div class="card-body p-0" th:if="${not #lists.isEmpty(results)}">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Author</th>
-                                    <th>Description</th>
-                                    <th>Stats</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="video : ${results}">
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                                            <span th:text="${video.authorHandle ?: 'Unknown'}">@author</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="truncate" th:text="${video.description ?: 'No description'}">Description</div>
-                                    </td>
-                                    <td>
-                                        <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
-                                    </td>
-                                    <td>
-                                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn btn-sm btn-outline-primary">View</a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-body" th:if="${#lists.isEmpty(results)}">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
-                        <p class="text-muted">No videos found matching your search</p>
-                    </div>
-                </div>
+
+        <div th:if="${results != null}">
+            <h5 class="mb-3 ps-2 border-start border-3 border-danger">Results</h5>
+
+            <div th:if="${type == 'videos'}" class="glass-panel p-0 overflow-hidden">
+                <table class="table table-custom mb-0">
+                    <thead>
+                    <tr>
+                        <th class="ps-4">Asset</th>
+                        <th>Author</th>
+                        <th>Description</th>
+                        <th class="text-end pe-4">Link</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="video : ${results}">
+                        <td class="ps-4 font-mono text-white small" th:text="${video.platformId}">ID</td>
+                        <td class="text-white small" th:text="${video.authorHandle}">Author</td>
+                        <td class="text-secondary small text-truncate" style="max-width: 300px;" th:text="${video.description}">Desc</td>
+                        <td class="text-end pe-4"><a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="text-decoration-none text-danger fw-bold small">OPEN</a></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
-            
-            <!-- Profile Results -->
-            <div th:if="${type == 'profiles' and results != null}" class="card">
-                <div class="card-body p-0" th:if="${not #lists.isEmpty(results)}">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Profile</th>
-                                    <th>Display Name</th>
-                                    <th>Followers</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="profile : ${results}">
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="author-avatar me-2" th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
-                                            <span th:text="'@' + ${profile.platformHandle}">@handle</span>
-                                            <span th:if="${profile.isVerified}" class="badge badge-verified ms-1">✓</span>
-                                        </div>
-                                    </td>
-                                    <td th:text="${profile.displayName ?: '-'}">Name</td>
-                                    <td th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</td>
-                                    <td>
-                                        <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}" class="btn btn-sm btn-outline-primary">View</a>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-body" th:if="${#lists.isEmpty(results)}">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
-                        <p class="text-muted">No profiles found matching your search</p>
-                    </div>
-                </div>
+
+            <div th:if="${type == 'profiles'}" class="glass-panel p-0 overflow-hidden">
+                <table class="table table-custom mb-0">
+                    <thead>
+                    <tr>
+                        <th class="ps-4">Handle</th>
+                        <th>Name</th>
+                        <th>Followers</th>
+                        <th class="text-end pe-4">Link</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="profile : ${results}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-secondary" style="width: 24px; height: 24px;"></div>
+                                <span class="text-white small fw-bold" th:text="${profile.platformHandle}">@handle</span>
+                            </div>
+                        </td>
+                        <td class="text-secondary small" th:text="${profile.displayName}">Name</td>
+                        <td class="font-mono text-white small" th:text="${profile.followerCount}">0</td>
+                        <td class="text-end pe-4"><a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}" class="text-decoration-none text-danger fw-bold small">VIEW</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${#lists.isEmpty(results)}" class="text-center py-5">
+                <p class="text-muted">No matches found in the database.</p>
             </div>
         </div>
     </div>
-    
-    <div th:fragment="scripts"></div>
+
+</div>
+
+<div th:fragment="scripts"></div>
 </body>
 </html>

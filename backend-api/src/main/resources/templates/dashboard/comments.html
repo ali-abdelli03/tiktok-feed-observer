@@ -2,64 +2,40 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Comments - TikTok Scraper</title>
+    <title>Sentiment • Observer</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Comments</h1>
-            <p class="text-muted" th:if="${videoId}">
-                Comments for video: <code th:text="${videoId}">videoId</code>
-            </p>
-            <p class="text-muted" th:unless="${videoId}">
-                Comments liked by video authors
-            </p>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Global Sentiment</h2>
+            <p class="text-secondary m-0">Live feed of captured user comments.</p>
         </div>
-        
-        <!-- Comments List -->
-        <div class="card">
-            <div class="card-body p-0" th:if="${not #lists.isEmpty(comments)}">
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item" th:each="comment : ${comments}">
-                        <div class="d-flex align-items-start">
-                            <div class="author-avatar me-3" style="width: 40px; height: 40px;"
-                                 th:text="${comment.authorHandle != null} ? ${#strings.substring(comment.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <div>
-                                        <span class="fw-medium" th:text="${comment.authorHandle ?: 'Unknown'}">@author</span>
-                                        <span th:if="${comment.likedByAuthor}" class="badge bg-danger ms-1">❤️ Liked by Author</span>
-                                    </div>
-                                    <div>
-                                        <a th:href="@{/dashboard/videos/{id}(id=${comment.videoPlatformId})}" 
-                                           class="btn btn-sm btn-outline-secondary">
-                                            View Video
-                                        </a>
-                                    </div>
-                                </div>
-                                <p class="mb-2" th:text="${comment.textContent ?: comment.allText ?: 'No text'}">Comment text</p>
-                                <div class="d-flex gap-3">
-                                    <small class="text-muted" th:if="${comment.likes > 0}">
-                                        ❤️ <span th:text="${comment.likes}">0</span> likes
-                                    </small>
-                                    <small class="text-muted" th:text="${#temporals.format(comment.capturedAt, 'MMM d, yyyy HH:mm')}">Jan 1, 2024</small>
-                                </div>
-                            </div>
+    </div>
+
+    <div class="glass-panel p-0">
+        <div class="list-group list-group-flush">
+            <div class="list-group-item p-4" th:each="comment : ${comments}"
+                 style="background: transparent; border-bottom: 1px solid var(--border-color);">
+                <div class="row">
+                    <div class="col-md-3 border-end border-secondary border-opacity-10">
+                        <div class="text-white fw-bold mb-1" th:text="${comment.authorHandle}">@user</div>
+                        <div class="text-tertiary small font-mono mb-2" th:text="${#temporals.format(comment.capturedAt, 'yyyy-MM-dd HH:mm')}">Date</div>
+                        <a th:href="@{/dashboard/videos/{id}(id=${comment.videoPlatformId})}" class="badge bg-dark border border-secondary text-secondary text-decoration-none fw-normal">
+                            <i class="bi bi-play-circle me-1"></i> Source
+                        </a>
+                    </div>
+                    <div class="col-md-9 ps-md-4 mt-2 mt-md-0">
+                        <p class="text-secondary mb-2" th:text="${comment.textContent}">Comment content goes here...</p>
+                        <div class="d-flex gap-3 text-tertiary small">
+                            <span><i class="bi bi-heart me-1"></i> <span th:text="${comment.likes}">0</span></span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body" th:if="${#lists.isEmpty(comments)}">
-                <div class="empty-state">
-                    <div class="empty-state-icon">💬</div>
-                    <h5>No comments found</h5>
-                    <p class="text-muted">Start scraping to capture comments</p>
-                </div>
-            </div>
         </div>
     </div>
-    
-    <div th:fragment="scripts"></div>
+</div>
+<div th:fragment="scripts"></div>
 </body>
 </html>

@@ -1,224 +1,160 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Dashboard - TikTok Scraper</title>
+    <title>Mission Control • Observer</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="text-muted">Overview of your TikTok scraping data</p>
+
+<div th:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-6 mb-1 fw-bold">Overview</h1>
+            <p class="text-secondary mb-0">Real-time ingestion telemetry and analytics.</p>
         </div>
-        
-        <!-- Stats Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-sm-6 col-xl-3">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
-                            🎬
-                        </div>
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalVideos}">0</div>
-                            <div class="stat-label">Videos</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-sm-6 col-xl-3">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
-                            👤
-                        </div>
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalProfiles}">0</div>
-                            <div class="stat-label">Profiles</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-sm-6 col-xl-3">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
-                            💬
-                        </div>
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalComments}">0</div>
-                            <div class="stat-label">Comments</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-sm-6 col-xl-3">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger me-3">
-                            ❤️
-                        </div>
-                        <div>
-                            <div class="stat-value" th:text="${stats.totalLikes}">0</div>
-                            <div class="stat-label">Likes (User)</div>
-                        </div>
-                    </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-glow btn-sm px-3 rounded-pill">
+                <i class="bi bi-download me-2"></i>Export
+            </button>
+            <button class="btn btn-glow btn-sm px-3 rounded-pill" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Sync
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-panel h-100 position-relative overflow-hidden">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 70%); border-radius: 50%;"></div>
+
+                <span class="text-label">Total Volume</span>
+                <div class="mt-2">
+                    <h2 class="display-4 fw-bold text-gradient-purple mb-0" th:text="${stats.totalVideos}">0</h2>
+                    <div class="text-secondary small mt-1"><i class="bi bi-play-circle-fill me-1 text-white"></i> Videos Ingested</div>
                 </div>
             </div>
         </div>
-        
-        <!-- Secondary Stats -->
-        <div class="row g-4 mb-4">
-            <div class="col-sm-6 col-lg-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-3">Content Breakdown</h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Ad Videos</span>
-                            <span class="badge badge-ad" th:text="${stats.adVideos}">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Live Streams</span>
-                            <span class="badge badge-live" th:text="${stats.liveVideos}">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Verified Profiles</span>
-                            <span class="badge badge-verified" th:text="${stats.verifiedProfiles}">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-sm-6 col-lg-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-3">Scrapers</h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Testers</span>
-                            <span class="fw-bold" th:text="${stats.totalTesters}">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total Sessions</span>
-                            <span class="fw-bold" th:text="${stats.totalSessions}">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-sm-6 col-lg-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-3">User Actions</h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Liked Videos</span>
-                            <span class="fw-bold" th:text="${stats.totalLikes}">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Saved Videos</span>
-                            <span class="fw-bold" th:text="${stats.totalSaves}">0</span>
-                        </div>
-                    </div>
+
+        <div class="col-md-3">
+            <div class="glass-panel h-100 position-relative overflow-hidden">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 70%); border-radius: 50%;"></div>
+
+                <span class="text-label">Engagement</span>
+                <div class="mt-2">
+                    <h2 class="display-4 fw-bold text-gradient-red mb-0" th:text="${stats.totalInteractions}">0</h2>
+                    <div class="text-secondary small mt-1"><i class="bi bi-lightning-fill me-1 text-white"></i> Events Tracked</div>
                 </div>
             </div>
         </div>
-        
-        <div class="row g-4">
-            <!-- Recent Videos -->
-            <div class="col-lg-7">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Recent Videos</h5>
-                        <a th:href="@{/dashboard/videos}" class="btn btn-sm btn-outline-primary">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Author</th>
-                                        <th>Description</th>
-                                        <th>Stats</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="video : ${recentVideos}">
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                                                <div>
-                                                    <div class="fw-medium" th:text="${video.authorHandle ?: 'Unknown'}">author</div>
-                                                    <span th:if="${video.authorVerified}" class="badge badge-verified">✓</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="truncate" th:text="${video.description ?: 'No description'}" th:title="${video.description}">Description</div>
-                                        </td>
-                                        <td>
-                                            <span class="engagement-stat">❤️ <span th:text="${video.likes ?: 0}">0</span></span>
-                                            <span class="engagement-stat">💬 <span th:text="${video.comments ?: 0}">0</span></span>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(recentVideos)}">
-                                        <td colspan="3" class="text-center text-muted py-4">No videos yet</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+
+        <div class="col-md-3">
+            <div class="glass-panel h-100">
+                <span class="text-label">Network</span>
+                <div class="mt-2">
+                    <h2 class="display-4 fw-bold text-white mb-0" th:text="${stats.totalProfiles}">0</h2>
+                    <div class="text-secondary small mt-1"><i class="bi bi-people-fill me-1 text-white"></i> Unique Creators</div>
                 </div>
             </div>
-            
-            <!-- Top Profiles -->
-            <div class="col-lg-5">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Top Profiles</h5>
-                        <a th:href="@{/dashboard/profiles}" class="btn btn-sm btn-outline-primary">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Profile</th>
-                                        <th>Videos</th>
-                                        <th>Followers</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="profile : ${topProfiles}">
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="author-avatar me-2" th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
-                                                <div>
-                                                    <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}" 
-                                                       class="fw-medium text-decoration-none" th:text="'@' + ${profile.platformHandle}">@handle</a>
-                                                    <span th:if="${profile.isVerified}" class="badge badge-verified ms-1">✓</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td th:text="${profile.videoCount ?: 0}">0</td>
-                                        <td th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(topProfiles)}">
-                                        <td colspan="3" class="text-center text-muted py-4">No profiles yet</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-panel h-100">
+                <span class="text-label">Sentiment Data</span>
+                <div class="mt-2">
+                    <h2 class="display-4 fw-bold text-white mb-0" th:text="${stats.totalComments}">0</h2>
+                    <div class="text-secondary small mt-1"><i class="bi bi-chat-quote-fill me-1 text-white"></i> Comments Parsed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="glass-panel p-0 h-100">
+                <div class="p-4 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Incoming Stream</h5>
+                    <a th:href="@{/dashboard/videos}" class="text-decoration-none small text-danger fw-bold text-uppercase" style="letter-spacing: 0.05em;">View All <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-4">Asset ID</th>
+                            <th>Creator</th>
+                            <th>Metrics</th>
+                            <th class="text-end pe-4">Timestamp</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="video : ${recentVideos}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-2 d-flex align-items-center justify-content-center"
+                                         style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); color: #fff;">
+                                        <i class="bi bi-file-play"></i>
+                                    </div>
+                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}"
+                                       class="font-mono text-decoration-none text-white small"
+                                       th:text="${video.platformId}">ID</a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-medium text-white" th:text="${video.authorHandle}">handle</span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-3 small text-secondary">
+                                    <span><i class="bi bi-heart-fill text-danger me-1"></i> <span th:text="${video.stats?.likeCount}">0</span></span>
+                                    <span><i class="bi bi-chat-fill text-info me-1"></i> <span th:text="${video.stats?.commentCount}">0</span></span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4 font-mono small text-secondary">
+                                <span th:text="${#temporals.format(video.firstSeenAt, 'HH:mm:ss')}">Time</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-panel h-100">
+                <div class="mb-4">
+                    <h5 class="mb-1">Top Sources</h5>
+                    <p class="text-secondary small">Highest volume creators</p>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="profile, iter : ${topProfiles}"
+                         class="d-flex align-items-center justify-content-between p-3 rounded-3"
+                         style="background: rgba(255,255,255,0.02); border: 1px solid transparent; transition: 0.2s;"
+                         onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='var(--border-color)'"
+                         onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.borderColor='transparent'">
+
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold small"
+                                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #2d2d3a, #000); border: 1px solid #333; color: var(--neon-purple);"
+                                 th:text="${iter.index + 1}">1</div>
+
+                            <div>
+                                <div class="text-white fw-medium small" th:text="${profile.handle}">handle</div>
+                                <div class="text-tertiary" style="font-size: 0.7rem;">Verified Source</div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <div class="font-mono fw-bold text-white small" th:text="${profile.videoCount}">0</div>
+                            <div class="text-tertiary" style="font-size: 0.65rem;">VIDS</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div th:fragment="scripts">
-        <!-- No additional scripts needed for this page -->
-    </div>
+</div>
+
+<div th:fragment="scripts"></div>
+
 </body>
 </html>

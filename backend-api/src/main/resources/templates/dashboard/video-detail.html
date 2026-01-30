@@ -2,169 +2,109 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title th:text="'Video ' + ${video.platformId} + ' - TikTok Scraper'">Video Detail</title>
+    <title>Video Analytics • Observer</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/dashboard/videos}">Videos</a></li>
-                <li class="breadcrumb-item active" th:text="${#strings.abbreviate(video.platformId, 20)}">Video</li>
-            </ol>
-        </nav>
-        
-        <!-- Video Header -->
-        <div class="row mb-4">
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="video-thumbnail me-3" style="width: 100px; height: 140px;">
-                                🎬
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="author-avatar me-2" th:text="${video.authorHandle != null} ? ${#strings.substring(video.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                                    <div>
-                                        <a th:if="${video.authorHandle != null}" 
-                                           th:href="@{/dashboard/profiles/{handle}(handle=${video.authorHandle})}"
-                                           class="h5 mb-0 text-decoration-none" th:text="'@' + ${video.authorHandle}">@author</a>
-                                        <span th:unless="${video.authorHandle != null}" class="h5 mb-0">Unknown Author</span>
-                                        <span th:if="${video.authorVerified}" class="badge badge-verified ms-1">✓ Verified</span>
-                                    </div>
-                                </div>
-                                
-                                <p class="mb-3" th:text="${video.description ?: 'No description'}">Description</p>
-                                
-                                <div class="d-flex gap-2 flex-wrap mb-3">
-                                    <span th:if="${video.isAd}" class="badge badge-ad">Ad</span>
-                                    <span th:if="${video.isLive}" class="badge badge-live">Live</span>
-                                    <span th:if="${video.isAi}" class="badge bg-info">AI Generated</span>
-                                </div>
-                                
-                                <div class="text-muted small">
-                                    <span>Video ID: <code th:text="${video.platformId}">id</code></span>
-                                    <span class="mx-2">|</span>
-                                    <span>First seen: <span th:text="${#temporals.format(video.firstSeenAt, 'MMM d, yyyy HH:mm')}">Jan 1, 2024</span></span>
-                                </div>
-                            </div>
+<div th:fragment="content">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small font-mono">
+            <li class="breadcrumb-item"><a th:href="@{/dashboard/videos}" class="text-secondary text-decoration-none">FEED</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page" th:text="${video.platformId}">ID</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 h-100">
+        <div class="col-lg-5">
+            <div class="glass-panel h-100 position-relative">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <span class="badge bg-dark border border-secondary text-secondary font-mono">VIDEO ASSET</span>
+                    <a th:href="${video.webUrl}" target="_blank" class="btn btn-sm btn-outline-secondary border-secondary text-white">
+                        Open in TikTok <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+
+                <h4 class="mb-3 text-break" th:text="${video.description ?: 'No description'}">Desc</h4>
+
+                <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-3" style="background: rgba(255,255,255,0.03);">
+                    <div class="rounded-circle bg-gradient" style="width: 40px; height: 40px; background: var(--neon-purple);"></div>
+                    <div>
+                        <div class="text-label mb-0">Author</div>
+                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-white text-decoration-none fw-bold" th:text="${'@' + video.authorHandle}">@user</a>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
+                            <div class="text-label">Likes</div>
+                            <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.likeCount ?: 0}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
+                            <div class="text-label">Comments</div>
+                            <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.commentCount ?: 0}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
+                            <div class="text-label">Shares</div>
+                            <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.shareCount ?: 0}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
+                            <div class="text-label">Views</div>
+                            <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.playCount ?: 0}">0</div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Stats Card -->
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">Current Stats</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <div class="fs-4">❤️</div>
-                                    <div class="h4 mb-0" th:text="${video.likes ?: 0}">0</div>
-                                    <small class="text-muted">Likes</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <div class="fs-4">💬</div>
-                                    <div class="h4 mb-0" th:text="${video.comments ?: 0}">0</div>
-                                    <small class="text-muted">Comments</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <div class="fs-4">📤</div>
-                                    <div class="h4 mb-0" th:text="${video.shares ?: 0}">0</div>
-                                    <small class="text-muted">Shares</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
-                                    <div class="fs-4">⭐</div>
-                                    <div class="h4 mb-0" th:text="${video.saves ?: 0}">0</div>
-                                    <small class="text-muted">Saves</small>
-                                </div>
-                            </div>
-                        </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <div class="text-label">Metadata</div>
+                    <div class="font-mono small text-secondary mt-2">
+                        <div>INGESTED: <span class="text-white" th:text="${#temporals.format(video.firstSeenAt, 'yyyy-MM-dd HH:mm:ss')}"></span></div>
+                        <div>DURATION: <span class="text-white" th:text="${video.duration != null ? video.duration + 'ms' : 'N/A'}"></span></div>
+                        <div>MUSIC: <span class="text-white" th:text="${video.music?.title ?: 'Original Sound'}"></span></div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Stats History -->
-        <div class="card mb-4" th:if="${not #lists.isEmpty(statsHistory)}">
-            <div class="card-header">
-                <h5 class="mb-0">Stats History</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th>Captured At</th>
-                                <th>Likes</th>
-                                <th>Comments</th>
-                                <th>Shares</th>
-                                <th>Saves</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="stat : ${statsHistory}">
-                                <td th:text="${#temporals.format(stat.capturedAt, 'MMM d, HH:mm:ss')}">Jan 1, 12:00</td>
-                                <td th:text="${stat.likes}">0</td>
-                                <td th:text="${stat.comments}">0</td>
-                                <td th:text="${stat.shares}">0</td>
-                                <td th:text="${stat.saves}">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+        <div class="col-lg-7">
+            <div class="glass-panel h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Sentiment Stream</h5>
+                    <span class="badge bg-primary-subtle text-primary border-primary" th:text="${#lists.size(comments) + ' parsed'}">0</span>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Comments -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Comments (<span th:text="${#lists.size(comments)}">0</span>)</h5>
-            </div>
-            <div class="card-body p-0" th:if="${not #lists.isEmpty(comments)}">
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item" th:each="comment : ${comments}">
-                        <div class="d-flex align-items-start">
-                            <div class="author-avatar me-3" style="width: 32px; height: 32px; font-size: 0.8rem;"
-                                 th:text="${comment.authorHandle != null} ? ${#strings.substring(comment.authorHandle, 0, 1).toUpperCase()} : '?'">A</div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <span class="fw-medium" th:text="${comment.authorHandle ?: 'Unknown'}">@author</span>
-                                        <span th:if="${comment.likedByAuthor}" class="badge bg-danger ms-1" title="Liked by author">❤️ Author</span>
-                                    </div>
-                                    <small class="text-muted" th:text="${#temporals.format(comment.capturedAt, 'MMM d, HH:mm')}">Jan 1</small>
+
+                <div class="flex-grow-1 overflow-auto pe-2" style="max-height: 600px;">
+                    <div class="d-flex flex-column gap-2">
+                        <div th:each="comment : ${comments}" class="p-3 rounded-3" style="background: rgba(255,255,255,0.03); border-left: 2px solid var(--border-color);">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-white fw-bold small" th:text="${comment.authorHandle}">user</span>
+                                    <span th:if="${comment.likedByAuthor}" class="badge bg-danger-subtle text-danger" style="font-size: 0.6rem;">AUTHOR LIKED</span>
                                 </div>
-                                <p class="mb-1 mt-1" th:text="${comment.textContent ?: comment.allText ?: 'No text'}">Comment text</p>
-                                <small class="text-muted" th:if="${comment.likes > 0}">
-                                    ❤️ <span th:text="${comment.likes}">0</span> likes
-                                </small>
+                                <span class="text-tertiary font-mono" style="font-size: 0.7rem;" th:text="${#temporals.format(comment.capturedAt, 'HH:mm')}">time</span>
+                            </div>
+                            <p class="mb-1 text-secondary small" th:text="${comment.textContent}">Comment...</p>
+                            <div class="text-tertiary" style="font-size: 0.7rem;">
+                                <i class="bi bi-heart-fill me-1"></i> <span th:text="${comment.likes}">0</span>
                             </div>
                         </div>
+
+                        <div th:if="${#lists.isEmpty(comments)}" class="text-center py-5">
+                            <div class="text-muted opacity-25" style="font-size: 3rem;"><i class="bi bi-chat-square-dots"></i></div>
+                            <p class="text-secondary mt-2">No comments captured yet.</p>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="card-body" th:if="${#lists.isEmpty(comments)}">
-                <div class="empty-state">
-                    <div class="empty-state-icon">💬</div>
-                    <p class="text-muted">No comments captured for this video</p>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div th:fragment="scripts"></div>
+</div>
+
+<div th:fragment="scripts"></div>
 </body>
 </html>
