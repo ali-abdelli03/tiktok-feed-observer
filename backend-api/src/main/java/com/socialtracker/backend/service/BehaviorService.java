@@ -59,15 +59,12 @@ public class BehaviorService {
             return false;
         }
         
-        Optional<Video> videoOpt = videoService.findByPlatformId(videoPlatformId);
-        if (videoOpt.isEmpty()) {
-            log.debug("Video not found for interaction: {}", videoPlatformId);
-            return false;
-        }
+        //Optional<Video> videoOpt = videoService.findByPlatformId(videoPlatformId);
+        Video video = videoService.findOrCreateSkeleton(videoPlatformId);
         
         Interaction interaction = Interaction.builder()
                 .session(session)
-                .video(videoOpt.get())
+                .video(video)
                 .interactionType(dto.type())
                 .action(dto.action())
                 .isActive(Boolean.TRUE.equals(dto.is_active()))
@@ -106,16 +103,11 @@ public class BehaviorService {
         if (videoPlatformId == null || videoPlatformId.isBlank()) {
             return null;
         }
-        
-        Optional<Video> videoOpt = videoService.findByPlatformId(videoPlatformId);
-        if (videoOpt.isEmpty()) {
-            log.debug("Video not found for watch time: {}", videoPlatformId);
-            return null;
-        }
+        Video video = videoService.findOrCreateSkeleton(videoPlatformId);
         
         WatchTime watchTime = WatchTime.builder()
                 .session(session)
-                .video(videoOpt.get())
+                .video(video)
                 .durationMs(dto.watch_duration_ms() != null ? dto.watch_duration_ms() : 0L)
                 .build();
         

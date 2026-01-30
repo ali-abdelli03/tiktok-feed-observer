@@ -45,14 +45,9 @@ public class CommentService {
             log.warn("Received comments without video ID");
             return 0;
         }
-        
+
         // Find or get video reference
-        Optional<Video> videoOpt = videoService.findByPlatformId(videoPlatformId);
-        if (videoOpt.isEmpty()) {
-            log.warn("Video not found for comments: {}", videoPlatformId);
-            return 0;
-        }
-        Video video = videoOpt.get();
+        Video video = videoService.findOrCreateSkeleton(videoPlatformId);
         
         int ingested = 0;
         for (CommentDto dto : comments) {

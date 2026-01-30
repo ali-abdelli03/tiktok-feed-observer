@@ -168,7 +168,31 @@ public class VideoService {
             }
         }
     }
-    
+    /**
+     * Trova un video o crea uno "scheletro" se non esiste ancora.
+     * Usato da BehaviorService e CommentService per gestire dati arrivati in anticipo.
+     */
+    @Transactional
+    public Video findOrCreateSkeleton(String platformId) {
+        // 1. Cerca se esiste
+        Optional<Video> existing = videoRepository.findByPlatformId(platformId);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        // 2. Se non esiste, crea uno scheletro vuoto
+        try {
+            log.info("⚡ Creating skeleton video for ID: {} (Data arrived before video ingestion)", platformId);
+            Video skeleton = Video.builder()
+                    .platformId(platformId)
+                    .build();
+            return videoRepository.saveAndFlush(skeleton);
+        } catch (Exception e) {
+            // 3. Gestione race condition: se un altro thread lo ha appena creato
+            return videoRepository.findByPlatformId(platformId)
+                    .orElseThrow(() -> new RuntimeException("Critical: Could not find or create video " + platformId));
+        }
+    }
     private void createStatsSnapshot(Video video, ContentDto dto, ScrapingSession session) {
         VideoStats stats = VideoStats.builder()
                 .video(video)
