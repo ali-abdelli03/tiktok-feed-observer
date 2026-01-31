@@ -60,11 +60,22 @@ class DOMExtractor {
         return '';
     }
     
-    _extractLivePlatformId(article) {
+_extractLivePlatformId(article) {
         const href = article.querySelector(this.SEL.LIVE_LINK)?.getAttribute('href') || '';
-        const roomMatch = href.match(/room_id=(\d+)/);
-        if (roomMatch) return `live_${roomMatch[1]}`;
         
+        //Extract video_id parameter from href
+        try {
+            const urlParams = new URLSearchParams(href.split('?')[1] || '');
+            const videoIdParam = urlParams.get('video_id');
+            
+            if (videoIdParam && videoIdParam.startsWith('live_')) {
+                return videoIdParam;
+            }
+        } catch (e) {
+            //ignored
+        }
+        
+        // Fallback: search any ID which looks like a live video ID in element IDs
         for (const el of article.querySelectorAll('[id]')) {
             const match = el.id.match(/(\d{13,19})/);
             if (match) return `live_${match[1]}`;
