@@ -38,9 +38,6 @@ public class Comment {
     @Column(name = "text_content", columnDefinition = "TEXT")
     private String textContent;
     
-    @Column(name = "all_text", columnDefinition = "TEXT")
-    private String allText;
-    
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
     

@@ -16,9 +16,6 @@ public record CommentDto(
     String author_handle,
     String author_name,
     
-    // All text content collected from the comment (separated by |)
-    String all_text,
-    
     // Raw text from comment-level-1 element
     String text_comment,
     

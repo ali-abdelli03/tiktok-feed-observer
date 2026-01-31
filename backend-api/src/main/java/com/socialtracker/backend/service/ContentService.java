@@ -89,7 +89,6 @@ public class ContentService {
                     System.out.println("    Author: @" + comment.author_handle());
                     System.out.println("    Name: " + (comment.author_name() != null ? comment.author_name() : "N/A"));
                     System.out.println("    Text Comment: " + (comment.text_comment() != null ? truncate(comment.text_comment(), 200) : "N/A"));
-                    System.out.println("    All Text: " + (comment.all_text() != null ? truncate(comment.all_text(), 200) : "N/A"));
                     if (comment.image_url() != null) {
                         System.out.println("    Image URL: " + comment.image_url());
                     }

@@ -178,7 +178,7 @@ class CommentScraper {
             return null;
         }
         
-        const textForId = (commentData.allText || '').slice(0, 50);
+        const textForId = (commentData.textComment || '').slice(0, 50);
         const commentId = Utils.generateCommentId(videoId, commentData.authorHandle, textForId);
         
         if (this.state.processedCommentIds.has(commentId)) {
@@ -192,7 +192,6 @@ class CommentScraper {
             video_id: videoId,
             author_handle: commentData.authorHandle,
             author_name: commentData.authorName,
-            all_text: commentData.allText,
             text_comment: commentData.textComment,
             image_url: commentData.imageUrl,
             likes: commentData.likes ?? 0,
@@ -331,9 +330,6 @@ class CommentScraper {
             }
         }
         
-        // CRITICAL: Extract text only from the original commentDiv to prevent leakage
-        const allText = this._collectAllText(textExtractionRoot);
-        
         // Extract raw text from comment-level-X element
         const textComment = commentDiv.textContent?.trim() || null;
         
@@ -415,7 +411,6 @@ class CommentScraper {
         return {
             authorHandle,
             authorName,
-            allText,
             textComment,
             imageUrl,
             likes,

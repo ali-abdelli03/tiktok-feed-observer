@@ -180,7 +180,6 @@ CREATE TABLE IF NOT EXISTS comment (
     
     -- Content
     text_content        TEXT,
-    all_text            TEXT,
     image_url           VARCHAR(1000),
     
     -- Engagement

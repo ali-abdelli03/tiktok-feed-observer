@@ -85,7 +85,6 @@ public class CommentService {
                 .authorHandle(dto.author_handle())
                 .authorName(dto.author_name())
                 .textContent(dto.text_comment())
-                .allText(dto.all_text())
                 .imageUrl(dto.image_url())
                 .likes(dto.likes() != null ? dto.likes() : 0)
                 .likedByAuthor(Boolean.TRUE.equals(dto.liked_by_author()))
