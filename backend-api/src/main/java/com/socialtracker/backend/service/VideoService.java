@@ -388,4 +388,18 @@ public class VideoService {
                 .capturedAt(stats.getCapturedAt())
                 .build();
     }
+    
+    /**
+     * Batch convert entities to DTOs
+     */
+    public List<VideoResponseDto> toDtoList(List<Video> videos) {
+        return videos.stream().map(this::toDto).collect(Collectors.toList());
+    }
+    
+    /**
+     * Batch convert stats entities to DTOs
+     */
+    public List<VideoStatsResponseDto> toStatsDtoList(List<VideoStats> statsList) {
+        return statsList.stream().map(this::toStatsDto).collect(Collectors.toList());
+    }
 }

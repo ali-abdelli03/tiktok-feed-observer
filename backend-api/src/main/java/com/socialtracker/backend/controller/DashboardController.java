@@ -44,17 +44,8 @@ public class DashboardController {
     public String dashboard(Model model) {
         DashboardStatsDto stats = analyticsService.getDashboardStats();
         model.addAttribute("stats", stats);
-
-        List<VideoResponseDto> recentVideos = videoService.findRecentVideos(24, 5).stream()
-                .map(videoService::toDto)
-                .collect(Collectors.toList());
-        model.addAttribute("recentVideos", recentVideos);
-
-        List<ProfileResponseDto> topProfiles = profileService.findTopByVideoCount(5).stream()
-                .map(profileService::toDto)
-                .collect(Collectors.toList());
-        model.addAttribute("topProfiles", topProfiles);
-
+        model.addAttribute("recentVideos", videoService.toDtoList(videoService.findRecentVideos(24, 5)));
+        model.addAttribute("topProfiles", profileService.toDtoList(profileService.findTopByVideoCount(5)));
         return "dashboard/index";
     }
 
@@ -79,17 +70,8 @@ public class DashboardController {
         return videoService.findByPlatformId(platformId)
                 .map(video -> {
                     model.addAttribute("video", videoService.toDto(video));
-
-                    List<VideoStatsResponseDto> statsHistory = videoService.getStatsHistory(video.getId()).stream()
-                            .map(videoService::toStatsDto)
-                            .collect(Collectors.toList());
-                    model.addAttribute("statsHistory", statsHistory);
-
-                    List<CommentResponseDto> comments = commentService.findByVideoId(video.getId()).stream()
-                            .map(commentService::toDto)
-                            .collect(Collectors.toList());
-                    model.addAttribute("comments", comments);
-
+                    model.addAttribute("statsHistory", videoService.toStatsDtoList(videoService.getStatsHistory(video.getId())));
+                    model.addAttribute("comments", commentService.toDtoList(commentService.findByVideoId(video.getId())));
                     return "dashboard/video-detail";
                 })
                 .orElse("redirect:/dashboard/videos");
@@ -116,12 +98,7 @@ public class DashboardController {
         return profileService.findByHandle(handle)
                 .map(profile -> {
                     model.addAttribute("profile", profileService.toDto(profile));
-
-                    List<VideoResponseDto> videos = profile.getVideos().stream()
-                            .map(videoService::toDto)
-                            .collect(Collectors.toList());
-                    model.addAttribute("videos", videos);
-
+                    model.addAttribute("videos", videoService.toDtoList(profile.getVideos()));
                     return "dashboard/profile-detail";
                 })
                 .orElse("redirect:/dashboard/profiles");
@@ -135,15 +112,12 @@ public class DashboardController {
         List<CommentResponseDto> comments;
 
         if (videoId != null && !videoId.isBlank()) {
-            comments = commentService.findByVideoPlatformId(videoId).stream()
-                    .map(commentService::toDto)
-                    .collect(Collectors.toList());
+            comments = commentService.toDtoList(commentService.findByVideoPlatformId(videoId));
             model.addAttribute("videoId", videoId);
         } else {
-            comments = commentService.findLikedByAuthor().stream()
-                    .limit(100)
-                    .map(commentService::toDto)
-                    .collect(Collectors.toList());
+            comments = commentService.toDtoList(
+                    commentService.findLikedByAuthor().stream().limit(100).collect(Collectors.toList())
+            );
         }
 
         model.addAttribute("comments", comments);

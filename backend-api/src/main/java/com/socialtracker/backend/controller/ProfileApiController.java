@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST Controller for querying profile data
@@ -55,10 +54,7 @@ public class ProfileApiController {
             @RequestParam(defaultValue = "10") int limit
     ) {
         List<Profile> profiles = profileService.findTopByVideoCount(limit);
-        List<ProfileResponseDto> dtos = profiles.stream()
-                .map(profileService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(profileService.toDtoList(profiles)));
     }
     
     /**
@@ -67,9 +63,6 @@ public class ProfileApiController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<ProfileResponseDto>>> searchProfiles(@RequestParam String q) {
         List<Profile> profiles = profileService.searchProfiles(q);
-        List<ProfileResponseDto> dtos = profiles.stream()
-                .map(profileService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(profileService.toDtoList(profiles)));
     }
 }

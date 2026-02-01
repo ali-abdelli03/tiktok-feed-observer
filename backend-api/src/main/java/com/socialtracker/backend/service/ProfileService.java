@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing TikTok profiles
@@ -160,6 +161,13 @@ public class ProfileService {
                 .firstSeenAt(profile.getFirstSeenAt())
                 .lastUpdatedAt(profile.getLastUpdatedAt())
                 .build();
+    }
+    
+    /**
+     * Batch convert entities to DTOs
+     */
+    public List<ProfileResponseDto> toDtoList(List<Profile> profiles) {
+        return profiles.stream().map(this::toDto).collect(Collectors.toList());
     }
     
     /**

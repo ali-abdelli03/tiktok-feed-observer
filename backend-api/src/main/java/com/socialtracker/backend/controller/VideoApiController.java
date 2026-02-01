@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST Controller for querying video data
@@ -54,13 +53,8 @@ public class VideoApiController {
     @GetMapping("/{platformId}/stats")
     public ResponseEntity<ApiResponse<List<VideoStatsResponseDto>>> getVideoStats(@PathVariable String platformId) {
         return videoService.findByPlatformId(platformId)
-                .map(video -> {
-                    List<VideoStats> stats = videoService.getStatsHistory(video.getId());
-                    List<VideoStatsResponseDto> dtos = stats.stream()
-                            .map(videoService::toStatsDto)
-                            .collect(Collectors.toList());
-                    return ResponseEntity.ok(ApiResponse.success(dtos));
-                })
+                .map(video -> ResponseEntity.ok(ApiResponse.success(
+                        videoService.toStatsDtoList(videoService.getStatsHistory(video.getId())))))
                 .orElse(ResponseEntity.notFound().build());
     }
     
@@ -74,16 +68,9 @@ public class VideoApiController {
             @RequestParam(defaultValue = "50") int size
     ) {
         return videoService.findByPlatformId(platformId)
-                .map(video -> {
-                    Page<Comment> comments = commentService.findByVideoIdPaged(
-                            video.getId(), 
-                            PageRequest.of(page, size)
-                    );
-                    List<CommentResponseDto> dtos = comments.stream()
-                            .map(commentService::toDto)
-                            .collect(Collectors.toList());
-                    return ResponseEntity.ok(ApiResponse.success(dtos));
-                })
+                .map(video -> ResponseEntity.ok(ApiResponse.success(
+                        commentService.toDtoList(commentService.findByVideoIdPaged(
+                                video.getId(), PageRequest.of(page, size)).getContent()))))
                 .orElse(ResponseEntity.notFound().build());
     }
     
@@ -95,10 +82,7 @@ public class VideoApiController {
             @RequestParam(defaultValue = "10") int limit
     ) {
         Page<Video> videos = videoService.findTopByLikes(PageRequest.of(0, limit));
-        List<VideoResponseDto> dtos = videos.stream()
-                .map(videoService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(videoService.toDtoList(videos.getContent())));
     }
     
     /**
@@ -110,10 +94,7 @@ public class VideoApiController {
             @RequestParam(defaultValue = "20") int limit
     ) {
         List<Video> videos = videoService.findRecentVideos(hours, limit);
-        List<VideoResponseDto> dtos = videos.stream()
-                .map(videoService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(videoService.toDtoList(videos)));
     }
     
     /**
@@ -121,11 +102,7 @@ public class VideoApiController {
      */
     @GetMapping("/hashtag/{tag}")
     public ResponseEntity<ApiResponse<List<VideoResponseDto>>> getVideosByHashtag(@PathVariable String tag) {
-        List<Video> videos = videoService.findByHashtag(tag);
-        List<VideoResponseDto> dtos = videos.stream()
-                .map(videoService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(videoService.toDtoList(videoService.findByHashtag(tag))));
     }
     
     /**
@@ -133,10 +110,6 @@ public class VideoApiController {
      */
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<VideoResponseDto>>> searchVideos(@RequestParam String q) {
-        List<Video> videos = videoService.searchByDescription(q);
-        List<VideoResponseDto> dtos = videos.stream()
-                .map(videoService::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(dtos));
+        return ResponseEntity.ok(ApiResponse.success(videoService.toDtoList(videoService.searchByDescription(q))));
     }
 }

@@ -177,4 +177,11 @@ public class CommentService {
                 .capturedAt(comment.getCapturedAt())
                 .build();
     }
+    
+    /**
+     * Batch convert entities to DTOs
+     */
+    public List<CommentResponseDto> toDtoList(List<Comment> comments) {
+        return comments.stream().map(this::toDto).collect(Collectors.toList());
+    }
 }
