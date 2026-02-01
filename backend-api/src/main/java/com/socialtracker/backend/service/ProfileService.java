@@ -10,6 +10,7 @@ import com.socialtracker.backend.repository.ProfileRepository;
 import com.socialtracker.backend.repository.ProfileVisitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,8 @@ public class ProfileService {
     private final SessionService sessionService;
     
     /**
-     * Find or create a profile by handle (upsert pattern)
+     * Find or create a profile by handle (upsert pattern).
+     * Handles race conditions by catching duplicate key exceptions and retrying lookup.
      */
     @Transactional
     public Profile findOrCreateProfile(String platformHandle) {
@@ -47,14 +49,27 @@ public class ProfileService {
             ? platformHandle.substring(1) 
             : platformHandle;
         
-        return profileRepository.findByPlatformHandle(handle)
-                .orElseGet(() -> {
-                    log.debug("Creating new profile: {}", handle);
-                    Profile newProfile = Profile.builder()
-                            .platformHandle(handle)
-                            .build();
-                    return profileRepository.save(newProfile);
-                });
+        // First attempt: check if exists
+        Optional<Profile> existing = profileRepository.findByPlatformHandle(handle);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        
+        // Profile doesn't exist, try to create it
+        try {
+            log.debug("Creating new profile: {}", handle);
+            Profile newProfile = Profile.builder()
+                    .platformHandle(handle)
+                    .build();
+            return profileRepository.saveAndFlush(newProfile);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition: another thread created the profile first
+            // Retry lookup - it should exist now
+            log.debug("Profile {} was created by concurrent request, fetching existing", handle);
+            return profileRepository.findByPlatformHandle(handle)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Profile should exist after duplicate key error: " + handle));
+        }
     }
     
     /**

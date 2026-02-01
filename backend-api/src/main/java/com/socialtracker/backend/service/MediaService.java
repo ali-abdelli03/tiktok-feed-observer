@@ -4,6 +4,7 @@ import com.socialtracker.backend.entity.*;
 import com.socialtracker.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +41,18 @@ public class MediaService {
         }
         
         // Create new music entry
-        Music music = Music.builder()
-                .platformId(platformId)
-                .name(name)
-                .url(url)
-                .build();
-        
-        log.debug("Created new music: {}", name);
-        return musicRepository.save(music);
+        try {
+            Music music = Music.builder()
+                    .platformId(platformId)
+                    .name(name)
+                    .url(url)
+                    .build();
+            log.debug("Created new music: {}", name);
+            return musicRepository.saveAndFlush(music);
+        } catch (DataIntegrityViolationException e) {
+            log.debug("Music {} was created by concurrent request, fetching existing", platformId);
+            return musicRepository.findByPlatformId(platformId).orElse(null);
+        }
     }
     
     public Optional<Music> findMusicByPlatformId(String platformId) {
@@ -70,14 +75,18 @@ public class MediaService {
             }
         }
         
-        Effect effect = Effect.builder()
-                .platformId(platformId)
-                .name(name)
-                .url(url)
-                .build();
-        
-        log.debug("Created new effect: {}", name);
-        return effectRepository.save(effect);
+        try {
+            Effect effect = Effect.builder()
+                    .platformId(platformId)
+                    .name(name)
+                    .url(url)
+                    .build();
+            log.debug("Created new effect: {}", name);
+            return effectRepository.saveAndFlush(effect);
+        } catch (DataIntegrityViolationException e) {
+            log.debug("Effect {} was created by concurrent request, fetching existing", platformId);
+            return effectRepository.findByPlatformId(platformId).orElse(null);
+        }
     }
     
     public Optional<Effect> findEffectByPlatformId(String platformId) {
@@ -102,19 +111,32 @@ public class MediaService {
         
         final String finalTag = normalizedTag;
         
-        return hashtagRepository.findByTag(finalTag)
-                .map(existing -> {
-                    existing.incrementUsageCount();
-                    return hashtagRepository.save(existing);
-                })
-                .orElseGet(() -> {
-                    Hashtag hashtag = Hashtag.builder()
-                            .tag(finalTag)
-                            .usageCount(1)
-                            .build();
-                    log.debug("Created new hashtag: #{}", finalTag);
-                    return hashtagRepository.save(hashtag);
-                });
+        // Try to find existing first
+        Optional<Hashtag> existing = hashtagRepository.findByTag(finalTag);
+        if (existing.isPresent()) {
+            Hashtag hashtag = existing.get();
+            hashtag.incrementUsageCount();
+            return hashtagRepository.save(hashtag);
+        }
+        
+        // Try to create new
+        try {
+            Hashtag hashtag = Hashtag.builder()
+                    .tag(finalTag)
+                    .usageCount(1)
+                    .build();
+            log.debug("Created new hashtag: #{}", finalTag);
+            return hashtagRepository.saveAndFlush(hashtag);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition: another thread created the hashtag first
+            log.debug("Hashtag #{} was created by concurrent request, fetching existing", finalTag);
+            return hashtagRepository.findByTag(finalTag)
+                    .map(h -> {
+                        h.incrementUsageCount();
+                        return hashtagRepository.save(h);
+                    })
+                    .orElse(null);
+        }
     }
     
     public Optional<Hashtag> findHashtagByTag(String tag) {
@@ -138,13 +160,17 @@ public class MediaService {
             }
         }
         
-        Place place = Place.builder()
-                .platformId(platformId)
-                .name(name)
-                .build();
-        
-        log.debug("Created new place: {}", name);
-        return placeRepository.save(place);
+        try {
+            Place place = Place.builder()
+                    .platformId(platformId)
+                    .name(name)
+                    .build();
+            log.debug("Created new place: {}", name);
+            return placeRepository.saveAndFlush(place);
+        } catch (DataIntegrityViolationException e) {
+            log.debug("Place {} was created by concurrent request, fetching existing", platformId);
+            return placeRepository.findByPlatformId(platformId).orElse(null);
+        }
     }
     
     public Optional<Place> findPlaceByPlatformId(String platformId) {
