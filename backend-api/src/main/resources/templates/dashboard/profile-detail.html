@@ -1,228 +1,253 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="html(title, content, scripts)">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:replace="${title}">TikTok Analytics</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <style>
-        :root {
-            /* --- THEME PALETTE: Deep Cosmos --- */
-            --bg-app: #050507;          /* Almost black */
-            --bg-sidebar: #0a0a0f;      /* Very dark indigo tint */
-            --bg-surface: rgba(255, 255, 255, 0.03);
-            --bg-surface-hover: rgba(255, 255, 255, 0.07);
-
-            --border-color: #272735;
-            --border-highlight: #ff0050;
-
-            --text-primary: #ffffff;
-            --text-secondary: #9ca3af;
-            --text-tertiary: #6b7280;
-
-            /* --- ACCENTS: The "Wow" Factor --- */
-            --neon-pink: #ec4899;
-            --neon-purple: #8b5cf6;
-            --neon-red: #ff0050;
-
-            /* The Master Gradient */
-            --brand-gradient: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-red));
-            --brand-glow: 0 0 25px rgba(236, 72, 153, 0.2);
-
-            /* Dimensions */
-            --sidebar-width: 260px;
-        }
-
-        body {
-            background-color: var(--bg-app);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
-        }
-
-        /* --- LAYOUT --- */
-        .app-container { display: flex; min-height: 100vh; }
-
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            position: fixed;
-            height: 100vh;
-            padding: 1.5rem 1rem;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-
-        .brand-logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            text-decoration: none;
-            margin-bottom: 2.5rem;
-            display: block;
-            padding-left: 0.75rem;
-        }
-
-        .brand-logo span {
-            background: var(--brand-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.4));
-        }
-
-        /* Nav Links */
-        .nav-link {
-            color: var(--text-secondary);
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .nav-link:hover {
-            color: var(--text-primary);
-            background: var(--bg-surface);
-            transform: translateX(4px);
-        }
-
-        .nav-link.active {
-            background: linear-gradient(90deg, rgba(236, 72, 153, 0.1), transparent);
-            border: 1px solid rgba(236, 72, 153, 0.2);
-            color: #fff;
-            text-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
-        }
-
-        .nav-link.active i { color: var(--neon-pink); }
-
-        /* --- MAIN CONTENT --- */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 2.5rem;
-            /* Subtle background mesh gradient */
-            background-image:
-                radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 25%),
-                radial-gradient(circle at 0% 100%, rgba(255, 0, 80, 0.05) 0%, transparent 25%);
-        }
-
-        /* --- PREMIUM CARDS --- */
-        .glass-panel {
-            background: rgba(20, 20, 25, 0.7);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            backdrop-filter: blur(12px);
-            padding: 1.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .glass-panel:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            transform: translateY(-2px);
-        }
-
-        /* --- TYPOGRAPHY & UTILS --- */
-        h1, h2, h3, h4 { letter-spacing: -0.02em; font-weight: 700; color: #fff; }
-        .text-label { text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 0.5rem; display: block; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* Gradients Text Utility */
-        .text-gradient-purple { background: linear-gradient(to right, #c084fc, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .text-gradient-red { background: linear-gradient(to right, #f472b6, #ff0050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        /* --- TABLES --- */
-        .table-custom { --bs-table-bg: transparent; --bs-table-color: var(--text-secondary); --bs-table-border-color: var(--border-color); }
-        .table-custom th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); font-weight: 600; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        .table-custom td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .table-custom tr:hover td { background: var(--bg-surface); color: white; }
-
-        /* --- BUTTONS --- */
-        .btn-glow {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: white;
-            transition: all 0.2s;
-        }
-        .btn-glow:hover {
-            border-color: var(--neon-purple);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
-            color: white;
-        }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-app); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--neon-purple); }
-    </style>
+    <title>Creator Dossier • NEXUS</title>
 </head>
 <body>
+<div th:fragment="content">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small font-mono" style="--bs-breadcrumb-divider: '/';">
+            <li class="breadcrumb-item"><a th:href="@{/dashboard/profiles}" class="text-purple text-decoration-none">CREATORS</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page" th:text="${'@' + profile.platformHandle}">@handle</li>
+        </ol>
+    </nav>
 
-<div class="app-container">
-    <aside class="sidebar">
-        <a class="brand-logo" th:href="@{/dashboard}">
-            <i class="bi bi-cpu-fill me-2"></i><span>OBSERVER</span>
-        </a>
+    <div class="row g-4">
+        <!-- Left Column: Profile Info -->
+        <div class="col-lg-4">
+            <div class="glass-panel glow h-100">
+                <!-- Profile Header -->
+                <div class="text-center mb-4 pb-4" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <!-- Avatar -->
+                    <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center font-display position-relative"
+                         style="width: 100px; height: 100px; background: var(--accent-gradient); font-size: 2.5rem; color: #fff;">
+                        <span th:text="${#strings.toUpperCase(#strings.substring(profile.platformHandle, 0, 1))}">A</span>
+                        <div th:if="${profile.verified}" class="position-absolute" style="bottom: 0; right: 0;">
+                            <span class="badge-cosmos badge-purple" style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Name & Handle -->
+                    <h4 class="font-display text-white mb-1" th:text="${profile.displayName ?: profile.platformHandle}">Name</h4>
+                    <p class="text-purple font-mono mb-2" th:text="${'@' + profile.platformHandle}">@handle</p>
+                    
+                    <!-- Status Badge -->
+                    <span class="badge-cosmos badge-purple">CREATOR PROFILE</span>
+                </div>
 
-        <div class="text-label px-3 mt-4">Platform</div>
-        <nav class="nav flex-column mt-2">
-            <a class="nav-link" th:classappend="${requestURI == '/dashboard' or requestURI == '/dashboard/'} ? 'active'" th:href="@{/dashboard}">
-                <i class="bi bi-speedometer2"></i> Mission Control
-            </a>
-            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/videos')} ? 'active'" th:href="@{/dashboard/videos}">
-                <i class="bi bi-collection-play"></i> Video Feed
-            </a>
-            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/profiles')} ? 'active'" th:href="@{/dashboard/profiles}">
-                <i class="bi bi-person-bounding-box"></i> Creators
-            </a>
-        </nav>
+                <!-- Bio -->
+                <div class="mb-4" th:if="${profile.bio}">
+                    <div class="text-label">BIO</div>
+                    <p class="text-muted-custom small mb-0" th:text="${profile.bio}">Bio text...</p>
+                </div>
 
-        <div class="text-label px-3 mt-4">Intelligence</div>
-        <nav class="nav flex-column mt-2">
-            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/comments')} ? 'active'" th:href="@{/dashboard/comments}">
-                <i class="bi bi-chat-left-text"></i> Comments
-            </a>
-            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/testers')} ? 'active'" th:href="@{/dashboard/testers}">
-                <i class="bi bi-people-fill"></i> Testers
-            </a>
-            <a class="nav-link" th:classappend="${#strings.startsWith(requestURI, '/dashboard/search')} ? 'active'" th:href="@{/dashboard/search}">
-                <i class="bi bi-binoculars"></i> Search Logs
-            </a>
-        </nav>
+                <!-- Stats Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="stat-card purple">
+                            <div class="text-label">FOLLOWERS</div>
+                            <div class="fs-4 fw-bold text-white font-mono" th:text="${#numbers.formatInteger(profile.followerCount ?: 0, 1, 'COMMA')}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card pink">
+                            <div class="text-label">FOLLOWING</div>
+                            <div class="fs-4 fw-bold text-white font-mono" th:text="${#numbers.formatInteger(profile.followingCount ?: 0, 1, 'COMMA')}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card red">
+                            <div class="text-label">LIKES</div>
+                            <div class="fs-4 fw-bold text-white font-mono" th:text="${#numbers.formatInteger(profile.likesCount ?: 0, 1, 'COMMA')}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card gradient">
+                            <div class="text-label">VIDEOS</div>
+                            <div class="fs-4 fw-bold text-white font-mono" th:text="${#lists.size(videos)}">0</div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="mt-auto px-2">
-            <div class="glass-panel p-3 d-flex align-items-center gap-3" style="background: rgba(0,0,0,0.4); border: 1px solid #1f1f27;">
-                <div class="rounded-circle" style="width: 8px; height: 8px; background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);"></div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                    <div>Engine Online</div>
-                    <div style="color: var(--text-tertiary); font-size: 0.65rem;">Latency: 24ms</div>
+                <!-- Metadata -->
+                <div class="pt-3" style="border-top: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div class="text-label mb-2">INTEL METADATA</div>
+                    <div class="font-mono small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted-custom">FIRST SEEN:</span>
+                            <span class="text-white" th:text="${#temporals.format(profile.firstSeenAt, 'yyyy-MM-dd')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted-custom">LAST UPDATE:</span>
+                            <span class="text-white" th:text="${#temporals.format(profile.lastUpdatedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted-custom">PLATFORM ID:</span>
+                            <span class="text-purple" th:text="${profile.platformId}">ID</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- External Link -->
+                <div class="mt-4">
+                    <a th:href="${'https://tiktok.com/@' + profile.platformHandle}" target="_blank" class="btn-cosmos w-100 justify-content-center">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>OPEN PROFILE
+                    </a>
                 </div>
             </div>
         </div>
-    </aside>
 
-    <main class="main-content">
-        <div th:replace="${content}"></div>
-    </main>
+        <!-- Right Column: Videos Grid -->
+        <div class="col-lg-8">
+            <div class="glass-panel glow">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 font-display text-gradient">
+                        <i class="bi bi-collection-play me-2"></i>CAPTURED ASSETS
+                    </h5>
+                    <span class="badge-cosmos badge-purple" th:text="${#lists.size(videos)} + ' videos'">0</span>
+                </div>
+
+                <!-- Videos Table -->
+                <div th:if="${!#lists.isEmpty(videos)}" class="table-responsive">
+                    <table class="table table-cosmos mb-0">
+                        <thead>
+                            <tr>
+                                <th>ASSET ID</th>
+                                <th>DESCRIPTION</th>
+                                <th class="text-center">TYPE</th>
+                                <th class="text-end">ENGAGEMENT</th>
+                                <th class="text-end">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="video : ${videos}">
+                                <td class="font-mono text-purple" th:text="${#strings.abbreviate(video.platformId, 12)}">ID</td>
+                                <td>
+                                    <span class="text-white" style="max-width: 250px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                                          th:text="${video.description ?: 'No description'}">Desc</span>
+                                </td>
+                                <td class="text-center">
+                                    <span th:if="${video.isLive}" class="badge-cosmos badge-red me-1">LIVE</span>
+                                    <span th:if="${video.isAd}" class="badge-cosmos badge-pink me-1">AD</span>
+                                    <span th:if="${video.isAi}" class="badge-cosmos badge-purple">AI</span>
+                                    <span th:if="${!video.isLive and !video.isAd and !video.isAi}" class="text-muted-custom">—</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex align-items-center justify-content-end gap-3 font-mono small">
+                                        <span class="text-pink">
+                                            <i class="bi bi-heart-fill me-1"></i>
+                                            <span th:text="${video.stats?.likeCount ?: 0}">0</span>
+                                        </span>
+                                        <span class="text-purple">
+                                            <i class="bi bi-chat-fill me-1"></i>
+                                            <span th:text="${video.stats?.commentCount ?: 0}">0</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn-cosmos btn-sm">
+                                        ANALYZE
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(videos)}" class="text-center py-5">
+                    <div class="text-purple" style="font-size: 4rem; opacity: 0.25;"><i class="bi bi-film"></i></div>
+                    <p class="text-muted-custom mt-3 font-mono">NO ASSETS CAPTURED</p>
+                    <p class="text-muted-custom small">Videos from this creator will appear here once ingested</p>
+                </div>
+            </div>
+
+            <!-- Engagement Chart -->
+            <div class="glass-panel glow mt-4" th:if="${!#lists.isEmpty(videos)}">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 font-display text-gradient">
+                        <i class="bi bi-bar-chart me-2"></i>ENGAGEMENT ANALYSIS
+                    </h5>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="engagementChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<div th:replace="${scripts}"></div>
+<div th:fragment="scripts">
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('engagementChart');
+            if (!ctx) return;
 
+            const videos = /*[[${videos}]]*/ [];
+            if (!videos || videos.length === 0) return;
+
+            // Take last 10 videos for chart
+            const recentVideos = videos.slice(0, 10).reverse();
+            
+            const labels = recentVideos.map((v, i) => `V${i + 1}`);
+            const likes = recentVideos.map(v => v.stats?.likeCount || 0);
+            const comments = recentVideos.map(v => v.stats?.commentCount || 0);
+            const shares = recentVideos.map(v => v.stats?.shareCount || 0);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Likes',
+                            data: likes,
+                            backgroundColor: 'rgba(255, 45, 120, 0.7)',
+                            borderColor: '#ff2d78',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Comments',
+                            data: comments,
+                            backgroundColor: 'rgba(153, 69, 255, 0.7)',
+                            borderColor: '#9945ff',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Shares',
+                            data: shares,
+                            backgroundColor: 'rgba(254, 44, 85, 0.7)',
+                            borderColor: '#fe2c55',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'JetBrains Mono' } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</div>
 </body>
 </html>

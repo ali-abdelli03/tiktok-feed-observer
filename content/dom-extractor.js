@@ -11,96 +11,247 @@ class DOMExtractor {
     constructor(state) {
         this.state = state;
         this.SEL = CONFIG.selectors;
+        // Regex patterns for ID extraction
+        this._videoIdRegex = /\/video\/(\d{13,19})/;
+        this._photoIdRegex = /\/photo\/(\d{13,19})/;
+        this._longIdRegex = /(\d{13,19})/;  // TikTok IDs are 13-19 digits
+        this._liveVideoIdRegex = /video_id=(?:live_)?(\d{13,19})/;
     }
     
-    // === Video ID Extraction ===
+    // === Video ID Extraction (Unified with Cascading Fallbacks) ===
+    
+    /**
+     * Extract video platform ID with cascading fallback strategy.
+     * Single source of truth for video ID extraction.
+     * 
+     * Priority Order:
+     * 1. Cache (if enabled) - fastest
+     * 2. Current page URL - most reliable (/video/ID or /photo/ID)
+     * 3. Live stream URL parameter (video_id=...) - for live content
+     * 4. Video links within article element
+     * 5. Element IDs containing 13-19 digit numbers
+     * 6. Viewport scan (visible feed item)
+     * 7. Any video link on page
+     * 8. Hash-based fallback (for deduplication only)
+     * 
+     * @param {HTMLElement|null} article - Optional article element to search within
+     * @param {Object} options - Extraction options
+     * @param {boolean} options.isLive - Whether this is a live stream
+     * @param {boolean} options.useCache - Whether to check/update cached value (default: true)
+     * @param {boolean} options.allowFallback - Whether to generate fallback ID if not found (default: false)
+     * @returns {string|null} - Platform ID (13-19 digit number) or null
+     */
+    getVideoId(article = null, options = {}) {
+        const { isLive = false, useCache = true, allowFallback = false } = options;
+        
+        // Strategy 1: Check cache first (fastest)
+        if (useCache && this.state.cachedVideoId) {
+            return this.state.cachedVideoId;
+        }
+        
+        // Strategy 2: URL parsing (most reliable for video detail/photo pages)
+        // Example: https://www.tiktok.com/@zhelayaq3/video/7572524348997750028
+        const urlId = this._extractFromUrl();
+        if (urlId) {
+            if (useCache) this.state.cachedVideoId = urlId;
+            return urlId;
+        }
+        
+        // Strategy 3: Live stream handling (check before regular links)
+        // Live links contain video_id parameter: video_id=live_7601768591683898126
+        if (article) {
+            const liveId = this._extractLiveId(article);
+            if (liveId) {
+                if (useCache) this.state.cachedVideoId = liveId;
+                return liveId;
+            }
+        }
+        
+        // Strategy 4: Video link href in article
+        if (article) {
+            const linkId = this._extractFromLinks(article);
+            if (linkId) {
+                if (useCache) this.state.cachedVideoId = linkId;
+                return linkId;
+            }
+        }
+        
+        // Strategy 5: Element IDs with 13-19 digit numbers in article
+        if (article) {
+            const elementId = this._extractFromElementIds(article);
+            if (elementId) {
+                if (useCache) this.state.cachedVideoId = elementId;
+                return elementId;
+            }
+        }
+        
+        // Strategy 6: Viewport scan (find visible video in feed)
+        const viewportId = this._extractFromViewport();
+        if (viewportId) {
+            if (useCache) this.state.cachedVideoId = viewportId;
+            return viewportId;
+        }
+        
+        // Strategy 7: Any video link on page
+        const anyLinkId = this._extractFromAnyLink();
+        if (anyLinkId) {
+            if (useCache) this.state.cachedVideoId = anyLinkId;
+            return anyLinkId;
+        }
+        
+        // Strategy 8: Generate fallback ID (for deduplication only)
+        if (allowFallback && article) {
+            const fallbackId = this._generateFallbackId(article);
+            console.log('[DOMExtractor] Using fallback ID:', fallbackId);
+            return fallbackId;
+        }
+        
+        return null;
+    }
+    
+    // Private extraction methods
+    
+    /**
+     * Extract ID from current page URL.
+     * Handles: /video/ID, /photo/ID
+     */
+    _extractFromUrl() {
+        const url = window.location.href;
+        
+        // Try /video/ID first (most common)
+        const videoMatch = url.match(this._videoIdRegex);
+        if (videoMatch) return videoMatch[1];
+        
+        // Try /photo/ID (photo carousel)
+        const photoMatch = url.match(this._photoIdRegex);
+        if (photoMatch) return photoMatch[1];
+        
+        return null;
+    }
+    
+    /**
+     * Extract ID from video links within an article element.
+     */
+    _extractFromLinks(article) {
+        const links = article.querySelectorAll(this.SEL.VIDEO_LINK);
+        for (const link of links) {
+            const href = link.getAttribute('href') || '';
+            const match = href.match(this._videoIdRegex);
+            if (match) return match[1];
+        }
+        return null;
+    }
+    
+    /**
+     * Extract ID from element IDs containing 13-19 digit numbers.
+     */
+    _extractFromElementIds(article) {
+        for (const el of article.querySelectorAll('[id]')) {
+            const match = el.id.match(this._longIdRegex);
+            if (match) return match[1];
+        }
+        return null;
+    }
+    
+    /**
+     * Scan viewport for visible feed item and extract its video ID.
+     */
+    _extractFromViewport() {
+        const items = document.querySelectorAll(this.SEL.FEED_ITEM);
+        for (const item of items) {
+            const rect = item.getBoundingClientRect();
+            // Check if item is in upper half of viewport (currently playing)
+            if (rect.top >= 0 && rect.top < window.innerHeight * 0.5) {
+                // Try video link first
+                const videoLink = item.querySelector(this.SEL.VIDEO_LINK);
+                const videoMatch = videoLink?.href?.match(this._videoIdRegex);
+                if (videoMatch) return videoMatch[1];
+                
+                // Try live link for live streams in feed
+                const liveId = this._extractLiveId(item);
+                if (liveId) return liveId;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Fallback: find any video link on the page.
+     */
+    _extractFromAnyLink() {
+        const link = document.querySelector(this.SEL.VIDEO_LINK);
+        const match = link?.href?.match(this._videoIdRegex);
+        return match ? match[1] : null;
+    }
+    
+    /**
+     * Extract live stream ID from live link.
+     * Scans all href attributes in the article to find video_id parameter.
+     */
+    _extractLiveId(article) {
+        // Strategy 1: Scan ALL hrefs in article for video_id parameter
+        const allLinks = article.querySelectorAll('a[href*="video_id"]');
+        for (const link of allLinks) {
+            const href = link.getAttribute('href') || '';
+            const videoIdMatch = href.match(/video_id=(?:live_)?(\d{13,19})/);
+            if (videoIdMatch) {
+                console.log('[DOMExtractor] Live ID found in href:', videoIdMatch[1]);
+                return `live_${videoIdMatch[1]}`;
+            }
+        }
+        
+        // Strategy 2: Generate a hash-based ID using username (last resort)
+        const liveLink = article.querySelector(this.SEL.LIVE_LINK) || 
+                         article.querySelector('[data-e2e="video-author-avatar"][href*="/live"]');
+        if (liveLink) {
+            const href = liveLink.getAttribute('href') || '';
+            const usernameMatch = href.match(/\/@([^/]+)\/live/);
+            if (usernameMatch) {
+                const username = usernameMatch[1];
+                const timestamp = Date.now();
+                const hashId = `live_${username}_${Utils.generateHash(`${username}:${timestamp}`)}`;
+                console.log('[DOMExtractor] Live ID from username hash:', hashId);
+                return hashId;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Generate a hash-based fallback ID when no platform ID can be extracted.
+     * This ensures uniqueness for deduplication purposes.
+     */
+    _generateFallbackId(article) {
+        const user = article.querySelector(this.SEL.USER_LINK)?.textContent?.trim();
+        const desc = article.querySelector('[data-e2e="video-desc"]')?.textContent?.trim() || '';
+        const timestamp = Date.now();
+        
+        // Combine available identifiers for a unique hash
+        if (user && desc.length > 10) {
+            return `hash_${Utils.generateHash(`${user}:${desc}:${timestamp}`)}`;
+        }
+        
+        if (user) {
+            return `hash_${Utils.generateHash(`${user}:${timestamp}`)}`;
+        }
+        
+        // Last resort: pure timestamp-based hash
+        return `hash_${Utils.generateHash(`unknown:${timestamp}:${Math.random()}`)}`;
+    }
+    
+    // === Legacy Aliases (for backward compatibility) ===
     
     extractVideoId(article) {
-        if (!article) return null;
-        
-        const videoLink = article.querySelector(this.SEL.VIDEO_LINK);
-        if (videoLink) {
-            const match = videoLink.getAttribute('href')?.match(/\/video\/(\d+)/);
-            if (match) return `vid:${match[1]}`;
-        }
-        
-        for (const el of article.querySelectorAll('[id]')) {
-            const match = el.id.match(/(\d{13,19})/);
-            if (match) return `vid:${match[1]}`;
-        }
-        
-        const user = article.querySelector(this.SEL.USER_LINK)?.textContent?.trim();
-        if (user) {
-            const desc = article.querySelector('[data-e2e="video-desc"]')?.textContent?.trim() || '';
-            if (desc.length > 10) {
-                return `${user}::${Utils.generateHash(desc)}`;
-            }
-        }
-        
-        return `article::${Date.now()}`;
+        return this.getVideoId(article, { useCache: false, allowFallback: true });
     }
     
-    extractPlatformId(article, isLive) {
-        if (!article) return '';
-        
-        if (isLive) {
-            return this._extractLivePlatformId(article);
-        }
-        
-        for (const link of article.querySelectorAll(this.SEL.VIDEO_LINK)) {
-            const match = link.getAttribute('href')?.match(/\/video\/(\d+)/);
-            if (match) return match[1];
-        }
-        
-        for (const el of article.querySelectorAll('[id]')) {
-            const match = el.id.match(/(\d{13,19})/);
-            if (match) return match[1];
-        }
-        
-        return '';
-    }
-    
-_extractLivePlatformId(article) {
-        const href = article.querySelector(this.SEL.LIVE_LINK)?.getAttribute('href') || '';
-        
-        //Extract video_id parameter from href
-        try {
-            const urlParams = new URLSearchParams(href.split('?')[1] || '');
-            const videoIdParam = urlParams.get('video_id');
-            
-            if (videoIdParam && videoIdParam.startsWith('live_')) {
-                return videoIdParam;
-            }
-        } catch (e) {
-            //ignored
-        }
-        
-        // Fallback: search any ID which looks like a live video ID in element IDs
-        for (const el of article.querySelectorAll('[id]')) {
-            const match = el.id.match(/(\d{13,19})/);
-            if (match) return `live_${match[1]}`;
-        }
-        
-        return '';
+    extractPlatformId(article, isLive = false) {
+        return this.getVideoId(article, { isLive, useCache: false, allowFallback: false }) || '';
     }
     
     getCurrentVideoId() {
-        if (this.state.cachedVideoId) return this.state.cachedVideoId;
-        
-        const urlMatch = window.location.href.match(/\/(video|photo)\/(\d+)/);
-        if (urlMatch) return (this.state.cachedVideoId = urlMatch[2]);
-        
-        for (const item of document.querySelectorAll(this.SEL.FEED_ITEM)) {
-            const rect = item.getBoundingClientRect();
-            if (rect.top >= 0 && rect.top < window.innerHeight * 0.5) {
-                const match = item.querySelector(this.SEL.VIDEO_LINK)?.href?.match(/\/video\/(\d+)/);
-                if (match) return (this.state.cachedVideoId = match[1]);
-            }
-        }
-        
-        const link = document.querySelector(this.SEL.VIDEO_LINK);
-        const match = link?.href?.match(/\/video\/(\d+)/);
-        return match ? (this.state.cachedVideoId = match[1]) : null;
+        return this.getVideoId(null, { useCache: true, allowFallback: false });
     }
     
     // === Content Detection ===

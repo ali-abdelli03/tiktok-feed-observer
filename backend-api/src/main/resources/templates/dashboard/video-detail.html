@@ -2,125 +2,182 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Video Analytics • Observer</title>
+    <title>Asset Intel • NEXUS</title>
 </head>
 <body>
 <div th:fragment="content">
+    <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb small font-mono">
-            <li class="breadcrumb-item"><a th:href="@{/dashboard/videos}" class="text-secondary text-decoration-none">FEED</a></li>
+        <ol class="breadcrumb small font-mono" style="--bs-breadcrumb-divider: '/';">
+            <li class="breadcrumb-item"><a th:href="@{/dashboard/videos}" class="text-purple text-decoration-none">VIDEO_MATRIX</a></li>
             <li class="breadcrumb-item active text-white" aria-current="page" th:text="${video.platformId}">ID</li>
         </ol>
     </nav>
 
-    <div class="row g-4 h-100">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="page-title mb-1">
+                <span class="text-gradient">Asset Intelligence</span>
+            </h1>
+            <p class="page-subtitle">Deep analysis of captured video asset</p>
+        </div>
+        <a th:href="${video.videoUrl}" target="_blank" class="btn-cosmos">
+            <i class="bi bi-box-arrow-up-right me-2"></i>OPEN SOURCE
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Video Info -->
         <div class="col-lg-5">
-            <div class="glass-panel h-100 position-relative">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <span class="badge bg-dark border border-secondary text-secondary font-mono">VIDEO ASSET</span>
-                    <a th:href="${video.videoUrl}" target="_blank" class="btn btn-sm btn-outline-secondary border-secondary text-white">
-                        Open in TikTok <i class="bi bi-box-arrow-up-right ms-1"></i>
-                    </a>
+            <div class="glass-panel glow h-100">
+                <!-- Status Badges -->
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="badge-cosmos badge-purple">ASSET</span>
+                    <span th:if="${video.isLive}" class="badge-cosmos badge-red">
+                        <span class="status-dot online me-1"></span>LIVE
+                    </span>
+                    <span th:if="${video.isAd}" class="badge-cosmos badge-pink">AD</span>
+                    <span th:if="${video.isAi}" class="badge-cosmos badge-purple">AI</span>
                 </div>
 
-                <h4 class="mb-3 text-break" th:text="${video.description ?: 'No description'}">Desc</h4>
+                <!-- Description -->
+                <div class="mb-4">
+                    <div class="text-label">DESCRIPTION</div>
+                    <p class="text-white mb-0" th:text="${video.description ?: 'No description available'}">Desc</p>
+                </div>
 
-                <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-3" style="background: rgba(255,255,255,0.03);">
-                    <div class="rounded-circle bg-gradient" style="width: 40px; height: 40px; background: var(--neon-purple);"></div>
-                    <div>
-                        <div class="text-label mb-0">Author</div>
-                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-white text-decoration-none fw-bold" th:text="${'@' + video.authorHandle}">@user</a>
+                <!-- Author Card -->
+                <div class="p-3 rounded mb-4" style="background: linear-gradient(135deg, rgba(153, 69, 255, 0.08), rgba(255, 45, 120, 0.05)); border: 1px solid rgba(153, 69, 255, 0.2);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center font-display" 
+                             style="width: 48px; height: 48px; background: var(--accent-gradient); font-size: 1.2rem; color: #fff;"
+                             th:text="${#strings.toUpperCase(#strings.substring(video.authorHandle, 0, 1))}">A</div>
+                        <div>
+                            <div class="text-label mb-0">CREATOR</div>
+                            <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" 
+                               class="text-purple text-decoration-none fw-bold font-mono" 
+                               th:text="${'@' + video.authorHandle}">@user</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <!-- Stats Grid -->
+                <div class="row g-3 mb-4">
                     <div class="col-6">
-                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
-                            <div class="text-label">Likes</div>
+                        <div class="stat-card pink">
+                            <div class="text-label">LIKES</div>
                             <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.likeCount ?: 0}">0</div>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
-                            <div class="text-label">Comments</div>
+                        <div class="stat-card purple">
+                            <div class="text-label">COMMENTS</div>
                             <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.commentCount ?: 0}">0</div>
                         </div>
                     </div>
-
-                    <div class="col-12">
-                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark" style="min-height: 250px;">
-                            <h5 class="mb-3" style="font-size: 0.9rem;">Intensity <span class="badge bg-dark border border-secondary ms-1" th:text="${#lists.size(video.watchHistory)}">0</span></h5>
-                            <div style="height: 180px;">
-                                <canvas id="watchTimeChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark position-relative overflow-hidden">
-                            <div style="position: absolute; right: 0; top: 0; width: 60px; height: 60px; background: radial-gradient(circle, var(--neon-pink), transparent 70%); opacity: 0.2;"></div>
-                            <div class="d-flex justify-content-between align-items-end">
-                                <div>
-                                    <div class="text-label text-warning">Total Watch Time</div>
-                                    <div class="fs-3 fw-bold text-white font-mono">
-                                        <span th:text="${#numbers.formatDecimal(video.totalWatchTimeMs / 1000.0, 1, 1)}">0.0</span>s
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <div class="text-label">Avg. Session</div>
-                                    <div class="text-secondary font-mono small">
-                                        <span th:text="${#numbers.formatDecimal(video.averageWatchTimeMs / 1000.0, 1, 1)}">0.0</span>s
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="col-6">
-                        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark">
-                            <div class="text-label">Shares</div>
+                        <div class="stat-card red">
+                            <div class="text-label">SHARES</div>
                             <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.shareCount ?: 0}">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card gradient">
+                            <div class="text-label">SAVES</div>
+                            <div class="fs-3 fw-bold text-white font-mono" th:text="${video.stats?.saveCount ?: 0}">0</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
-                    <div class="text-label">Metadata</div>
-                    <div class="font-mono small text-secondary mt-2">
-                        <div>INGESTED: <span class="text-white" th:text="${#temporals.format(video.firstSeenAt, 'yyyy-MM-dd HH:mm:ss')}"></span></div>
-                        <div>DURATION: <span class="text-white" th:text="${video.duration != null ? video.duration + 'ms' : 'N/A'}"></span></div>
-                        <div>MUSIC: <span class="text-white" th:text="${video.musicName ?: 'Original Sound'}"></span></div>
+                <!-- Watch Time Chart -->
+                <div class="glass-panel mb-4" style="min-height: 220px; background: rgba(18, 18, 28, 0.5);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 font-display text-pink" style="font-size: 0.9rem;">
+                            <i class="bi bi-activity me-2"></i>INTENSITY GRAPH
+                        </h5>
+                        <span class="badge-cosmos badge-purple" th:text="${#lists.size(video.watchHistory)} + ' records'">0</span>
+                    </div>
+                    <div style="height: 150px;">
+                        <canvas id="watchTimeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Watch Time Summary -->
+                <div class="p-3 rounded position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(255, 45, 120, 0.1), rgba(153, 69, 255, 0.05)); border: 1px solid rgba(255, 45, 120, 0.3);">
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="text-label text-pink">TOTAL WATCH TIME</div>
+                            <div class="fs-2 fw-bold text-white font-mono">
+                                <span th:text="${#numbers.formatDecimal(video.totalWatchTimeMs / 1000.0, 1, 1)}">0.0</span><span class="text-pink">s</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-label">AVG SESSION</div>
+                            <div class="text-purple font-mono">
+                                <span th:text="${#numbers.formatDecimal(video.averageWatchTimeMs / 1000.0, 1, 1)}">0.0</span>s
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata Footer -->
+                <div class="mt-4 pt-3" style="border-top: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div class="text-label mb-2">METADATA</div>
+                    <div class="font-mono small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted-custom">INGESTED:</span>
+                            <span class="text-white" th:text="${#temporals.format(video.firstSeenAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted-custom">DURATION:</span>
+                            <span class="text-white" th:text="${video.duration != null ? video.duration + 'ms' : 'N/A'}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted-custom">AUDIO:</span>
+                            <span class="text-purple" th:text="${video.musicName ?: 'Original Sound'}"></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Right Column: Comments Stream -->
         <div class="col-lg-7">
-            <div class="glass-panel h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Sentiment Stream</h5>
-                    <span class="badge bg-primary-subtle text-primary border-primary" th:text="${#lists.size(comments) + ' parsed'}">0</span>
+            <div class="glass-panel glow h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 font-display text-gradient">
+                        <i class="bi bi-chat-square-text me-2"></i>SIGNAL STREAM
+                    </h5>
+                    <span class="badge-cosmos badge-purple" th:text="${#lists.size(comments)} + ' intercepted'">0</span>
                 </div>
 
-                <div class="flex-grow-1 overflow-auto pe-2" style="max-height: 600px;">
+                <div class="flex-grow-1 overflow-auto pe-2" style="max-height: 700px;">
                     <div class="d-flex flex-column gap-2">
-                        <div th:each="comment : ${comments}" class="p-3 rounded-3" style="background: rgba(255,255,255,0.03); border-left: 2px solid var(--border-color);">
+                        <div th:each="comment : ${comments}" class="p-3 rounded" 
+                             style="background: rgba(153, 69, 255, 0.03); border-left: 3px solid var(--royal-purple);">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="text-white fw-bold small" th:text="${comment.authorHandle}">user</span>
-                                    <span th:if="${comment.likedByAuthor}" class="badge bg-danger-subtle text-danger" style="font-size: 0.6rem;">AUTHOR LIKED</span>
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 28px; height: 28px; background: var(--accent-gradient); font-size: 0.7rem; color: #fff;"
+                                         th:text="${#strings.toUpperCase(#strings.substring(comment.authorHandle, 0, 1))}">U</div>
+                                    <span class="text-white fw-bold small font-mono" th:text="${comment.authorHandle}">user</span>
+                                    <span th:if="${comment.likedByAuthor}" class="badge-cosmos badge-pink" style="font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+                                        <i class="bi bi-heart-fill me-1"></i>CREATOR
+                                    </span>
                                 </div>
-                                <span class="text-tertiary font-mono" style="font-size: 0.7rem;" th:text="${#temporals.format(comment.capturedAt, 'HH:mm')}">time</span>
+                                <span class="text-muted-custom font-mono" style="font-size: 0.65rem;" th:text="${#temporals.format(comment.capturedAt, 'HH:mm:ss')}">time</span>
                             </div>
-                            <p class="mb-1 text-secondary small" th:text="${comment.textContent}">Comment...</p>
-                            <div class="text-tertiary" style="font-size: 0.7rem;">
-                                <i class="bi bi-heart-fill me-1"></i> <span th:text="${comment.likes}">0</span>
+                            <p class="mb-2 text-muted-custom small" th:text="${comment.textContent}">Comment...</p>
+                            <div class="text-pink font-mono" style="font-size: 0.7rem;">
+                                <i class="bi bi-heart-fill me-1"></i><span th:text="${comment.likes}">0</span>
                             </div>
                         </div>
 
                         <div th:if="${#lists.isEmpty(comments)}" class="text-center py-5">
-                            <div class="text-muted opacity-25" style="font-size: 3rem;"><i class="bi bi-chat-square-dots"></i></div>
-                            <p class="text-secondary mt-2">No comments captured yet.</p>
+                            <div class="text-purple" style="font-size: 4rem; opacity: 0.25;"><i class="bi bi-broadcast"></i></div>
+                            <p class="text-muted-custom mt-3 font-mono">NO SIGNALS INTERCEPTED</p>
+                            <p class="text-muted-custom small">Comments will appear here once captured</p>
                         </div>
                     </div>
                 </div>
@@ -130,66 +187,53 @@
 </div>
 
 <div th:fragment="scripts">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('watchTimeChart').getContext('2d');
+            const ctx = document.getElementById('watchTimeChart');
+            if (!ctx) return;
 
-            // Safe null check
             const history = /*[[${video.watchHistory}]]*/ [];
 
             if (!history || history.length === 0) {
-                // Opzionale: Mostra un messaggio vuoto o nascondi il canvas se non ci sono dati
+                ctx.parentElement.innerHTML = '<div class="text-center py-4"><span class="text-muted-custom font-mono small">NO DATA RECORDED</span></div>';
                 return;
             }
 
-            // Ordina per data
             history.sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
 
-            const labels = history.map(h => {
-                const date = new Date(h.recordedAt);
-                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            });
-
-            const dataPoints = history.map(h => h.durationMs / 1000); // Ms -> Secondi
-            const testers = history.map(h => h.testerUsername);
+            const labels = history.map((h, i) => `#${i + 1}`);
+            const data = history.map(h => h.watchTimeMs / 1000);
 
             new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Watch Duration (seconds)',
-                        data: dataPoints,
-                        backgroundColor: 'rgba(236, 72, 153, 0.5)', // Neon Pink
-                        borderColor: '#ec4899',
-                        borderWidth: 1,
-                        barThickness: 10,  // Barre più sottili dato che lo spazio è ridotto
-                        maxBarThickness: 20
+                        label: 'Watch Time (s)',
+                        data: data,
+                        borderColor: '#ff2d78',
+                        backgroundColor: 'rgba(255, 45, 120, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#9945ff',
+                        pointBorderColor: '#9945ff',
+                        pointRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const tester = testers[context.dataIndex];
-                                    return ` ${context.raw}s by ${tester}`;
-                                }
-                            }
-                        }
+                        legend: { display: false }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#6b7280', font: { size: 10 } }
-                        },
                         x: {
-                            display: false
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
                         }
                     }
                 }

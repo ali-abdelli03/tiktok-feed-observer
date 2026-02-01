@@ -2,120 +2,440 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Search • Observer</title>
+    <title>Query Interface • NEXUS</title>
 </head>
 <body>
 <div th:fragment="content">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="page-title">
+            <span class="text-gradient">Query Interface</span>
+        </h1>
+        <p class="page-subtitle">Advanced search across all captured entities • Results sorted newest → oldest</p>
+    </div>
 
-    <div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold mb-3">Database Search</h1>
-            <p class="text-secondary">Query the ingestion engine across videos, profiles, and testers.</p>
-        </div>
-
-        <div class="glass-panel p-4 mb-5">
-            <form th:action="@{/dashboard/search}" method="get">
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
-                    <input type="text" name="q" class="form-control bg-dark border-secondary text-white"
-                           placeholder="Enter keywords, hashtags, IDs, or usernames..."
-                           th:value="${query}" style="box-shadow: none;">
-                    <button class="btn btn-glow px-4" type="submit">Search</button>
-                </div>
-                <div class="d-flex justify-content-center gap-3 mt-3">
-                    <div class="form-check">
-                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeVideos" value="videos" th:checked="${type == 'videos'}">
-                        <label class="form-check-label text-secondary" for="typeVideos">Videos</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeProfiles" value="profiles" th:checked="${type == 'profiles'}">
-                        <label class="form-check-label text-secondary" for="typeProfiles">Profiles</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input bg-dark border-secondary" type="radio" name="type" id="typeTesters" value="testers" th:checked="${type == 'testers'}">
-                        <label class="form-check-label text-secondary" for="typeTesters">Testers</label>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <div th:if="${results != null}">
-            <h5 class="mb-3 ps-2 border-start border-3 border-danger">Results</h5>
-
-            <div th:if="${type == 'videos'}" class="glass-panel p-0 overflow-hidden">
-                <table class="table table-custom mb-0">
-                    <thead>
-                    <tr>
-                        <th class="ps-4">Asset</th>
-                        <th>Author</th>
-                        <th>Description</th>
-                        <th class="text-end pe-4">Link</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="video : ${results}">
-                        <td class="ps-4 font-mono text-white small" th:text="${video.platformId}">ID</td>
-                        <td class="text-white small" th:text="${video.authorHandle}">Author</td>
-                        <td class="text-secondary small text-truncate" style="max-width: 300px;" th:text="${video.description}">Desc</td>
-                        <td class="text-end pe-4"><a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="text-decoration-none text-danger fw-bold small">OPEN</a></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div th:if="${type == 'profiles'}" class="glass-panel p-0 overflow-hidden">
-                <table class="table table-custom mb-0">
-                    <thead>
-                    <tr>
-                        <th class="ps-4">Handle</th>
-                        <th>Name</th>
-                        <th>Followers</th>
-                        <th class="text-end pe-4">Link</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="profile : ${results}">
-                        <td class="ps-4">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle bg-secondary" style="width: 24px; height: 24px;"></div>
-                                <span class="text-white small fw-bold" th:text="${profile.platformHandle}">@handle</span>
-                            </div>
-                        </td>
-                        <td class="text-secondary small" th:text="${profile.displayName}">Name</td>
-                        <td class="font-mono text-white small" th:text="${profile.followerCount}">0</td>
-                        <td class="text-end pe-4"><a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}" class="text-decoration-none text-danger fw-bold small">VIEW</a></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div th:if="${type == 'testers'}" class="glass-panel p-0 overflow-hidden">
-                <table class="table table-custom mb-0">
-                    <thead>
-                    <tr>
-                        <th class="ps-4">Username</th>
-                        <th>Last Active</th>
-                        <th>Total Sessions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="tester : ${results}">
-                        <td class="ps-4 text-white fw-bold" th:text="${tester.username}">Username</td>
-                        <td class="text-secondary font-mono small" th:text="${#temporals.format(tester.lastActiveAt, 'yyyy-MM-dd HH:mm')}">Time</td>
-                        <td class="text-white" th:text="${#lists.size(tester.sessions)}">0</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div th:if="${#lists.isEmpty(results)}" class="text-center py-5">
-                <p class="text-muted">No matches found in the database.</p>
-            </div>
+    <!-- Search Type Tabs -->
+    <div class="glass-panel p-0 mb-4">
+        <div class="d-flex" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+            <a th:href="@{/dashboard/search(type='videos')}" 
+               class="search-tab" th:classappend="${type == 'videos' or type == null} ? 'active' : ''">
+                <i class="bi bi-film me-2"></i>VIDEOS
+            </a>
+            <a th:href="@{/dashboard/search(type='creators')}" 
+               class="search-tab" th:classappend="${type == 'creators'} ? 'active' : ''">
+                <i class="bi bi-people me-2"></i>CREATORS
+            </a>
+            <a th:href="@{/dashboard/search(type='music')}" 
+               class="search-tab" th:classappend="${type == 'music'} ? 'active' : ''">
+                <i class="bi bi-music-note-beamed me-2"></i>MUSIC
+            </a>
+            <a th:href="@{/dashboard/search(type='effects')}" 
+               class="search-tab" th:classappend="${type == 'effects'} ? 'active' : ''">
+                <i class="bi bi-stars me-2"></i>EFFECTS
+            </a>
+            <a th:href="@{/dashboard/search(type='places')}" 
+               class="search-tab" th:classappend="${type == 'places'} ? 'active' : ''">
+                <i class="bi bi-geo-alt me-2"></i>PLACES
+            </a>
         </div>
     </div>
 
+    <!-- Search Form -->
+    <form th:action="@{/dashboard/search}" method="get" id="searchForm">
+        <input type="hidden" name="type" th:value="${type ?: 'videos'}">
+        
+        <div class="glass-panel glow mb-4">
+            <div class="row g-3">
+                <!-- Author Search (for Videos/Creators) -->
+                <div class="col-md-4" th:if="${type == 'videos' or type == 'creators' or type == null}">
+                    <label class="text-label">AUTHOR / HANDLE</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent" style="border: 1px solid rgba(153, 69, 255, 0.3); border-right: none; background: rgba(18, 18, 28, 0.6) !important; border-radius: 10px 0 0 10px;">
+                            <span class="text-pink">@</span>
+                        </span>
+                        <input type="text" name="author" class="form-control-cosmos" 
+                               placeholder="username or handle..."
+                               th:value="${author}" style="border-left: none; border-radius: 0 10px 10px 0;">
+                    </div>
+                </div>
+                
+                <!-- Hashtag Search (for Videos) -->
+                <div class="col-md-4" th:if="${type == 'videos' or type == null}">
+                    <label class="text-label">HASHTAG</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent" style="border: 1px solid rgba(153, 69, 255, 0.3); border-right: none; background: rgba(18, 18, 28, 0.6) !important; border-radius: 10px 0 0 10px;">
+                            <span class="text-purple">#</span>
+                        </span>
+                        <input type="text" name="hashtag" class="form-control-cosmos" 
+                               placeholder="travel, food, dance..."
+                               th:value="${hashtag}" style="border-left: none; border-radius: 0 10px 10px 0;">
+                    </div>
+                </div>
+                
+                <!-- Keyword Search (for Videos) -->
+                <div class="col-md-4" th:if="${type == 'videos' or type == null}">
+                    <label class="text-label">DESCRIPTION KEYWORD</label>
+                    <input type="text" name="keyword" class="form-control-cosmos" 
+                           placeholder="any word in description..."
+                           th:value="${keyword}">
+                </div>
+            </div>
+            
+            <!-- Filters Row -->
+            <div class="d-flex flex-wrap align-items-center gap-4 mt-4 pt-3" style="border-top: 1px solid rgba(153, 69, 255, 0.1);">
+                <!-- Time Range -->
+                <div>
+                    <label class="text-label mb-2">TIME RANGE</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == '1h'} ? 'active' : ''" data-value="1h">1H</button>
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == '24h'} ? 'active' : ''" data-value="24h">24H</button>
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == '7d'} ? 'active' : ''" data-value="7d">7D</button>
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == '30d'} ? 'active' : ''" data-value="30d">30D</button>
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == '90d'} ? 'active' : ''" data-value="90d">90D</button>
+                        <button type="button" class="btn-time-filter" th:classappend="${timeRange == null or timeRange == ''} ? 'active' : ''" data-value="">ALL</button>
+                    </div>
+                    <input type="hidden" name="timeRange" id="timeRangeInput" th:value="${timeRange}">
+                </div>
+                
+                <!-- Content Filters (for Videos) -->
+                <div th:if="${type == 'videos' or type == null}" class="d-flex gap-4 ms-auto">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="excludeAds" id="excludeAds" 
+                               th:checked="${excludeAds}">
+                        <label class="form-check-label text-muted-custom small" for="excludeAds">Exclude Ads</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="excludeAi" id="excludeAi"
+                               th:checked="${excludeAi}">
+                        <label class="form-check-label text-muted-custom small" for="excludeAi">Exclude AI</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="verifiedOnly" id="verifiedOnly"
+                               th:checked="${verifiedOnly}">
+                        <label class="form-check-label text-muted-custom small" for="verifiedOnly">Verified Only</label>
+                    </div>
+                </div>
+                
+                <!-- Execute Button -->
+                <button type="submit" class="btn-cosmos ms-3">
+                    <i class="bi bi-cpu me-2"></i>EXECUTE QUERY
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Query Summary (when search performed) -->
+    <div th:if="${queryDescription != null and !queryDescription.isEmpty()}" class="mb-4">
+        <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: linear-gradient(90deg, rgba(153, 69, 255, 0.1), transparent); border-left: 3px solid var(--royal-purple);">
+            <i class="bi bi-search text-purple"></i>
+            <span class="text-muted-custom">Query:</span>
+            <span class="text-white font-mono" th:text="${queryDescription}">query</span>
+            <span class="ms-auto badge-cosmos badge-purple" th:text="${videoCount} + ' results'">0</span>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="row g-4">
+        <!-- Main Results Column -->
+        <div th:class="${topMusic != null or topEffects != null or topPlaces != null} ? 'col-lg-8' : 'col-12'">
+            
+            <!-- VIDEO RESULTS -->
+            <div th:if="${type == 'videos' or type == null}">
+                <div th:if="${videoResults != null and !videoResults.isEmpty()}" class="glass-panel glow p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-cosmos mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 60px;">RANK</th>
+                                    <th>TIMESTAMP</th>
+                                    <th>AUTHOR</th>
+                                    <th>CONTENT</th>
+                                    <th class="text-center">FLAGS</th>
+                                    <th class="text-end">ENGAGEMENT</th>
+                                    <th class="text-end pe-4">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="video, iter : ${videoResults}">
+                                    <td class="ps-4">
+                                        <span class="font-display text-gradient" th:text="${iter.index + 1}">#1</span>
+                                    </td>
+                                    <td class="font-mono text-muted-custom small" th:text="${#temporals.format(video.firstSeenAt, 'MM-dd HH:mm')}">date</td>
+                                    <td>
+                                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" 
+                                           class="text-pink text-decoration-none font-mono d-flex align-items-center gap-2">
+                                            <span th:text="${'@' + video.authorHandle}">@author</span>
+                                            <i th:if="${video.authorVerified}" class="bi bi-patch-check-fill text-purple" style="font-size: 0.8rem;"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="text-white small" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                                             th:text="${video.description ?: 'No description'}">Desc</div>
+                                        <div class="text-purple small font-mono" th:if="${video.musicName}" th:text="${'♪ ' + video.musicName}"></div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span th:if="${video.isLive}" class="badge-cosmos badge-red me-1">LIVE</span>
+                                        <span th:if="${video.isAd}" class="badge-cosmos badge-pink me-1">AD</span>
+                                        <span th:if="${video.isAi}" class="badge-cosmos badge-purple">AI</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex align-items-center justify-content-end gap-3 font-mono small">
+                                            <span class="text-pink" th:title="Likes">
+                                                <i class="bi bi-heart-fill me-1"></i>
+                                                <span th:text="${video.stats?.likeCount ?: 0}">0</span>
+                                            </span>
+                                            <span class="text-purple" th:title="Comments">
+                                                <i class="bi bi-chat-fill me-1"></i>
+                                                <span th:text="${video.stats?.commentCount ?: 0}">0</span>
+                                            </span>
+                                            <span class="text-red" th:title="Shares">
+                                                <i class="bi bi-share-fill me-1"></i>
+                                                <span th:text="${video.stats?.shareCount ?: 0}">0</span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn-cosmos btn-sm">
+                                            ANALYZE
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${videoResults == null or videoResults.isEmpty()}" class="glass-panel text-center py-5">
+                    <div class="text-purple mb-3" style="font-size: 3rem; opacity: 0.4;"><i class="bi bi-film"></i></div>
+                    <p class="text-muted-custom font-mono">NO RESULTS FOUND</p>
+                    <p class="text-muted-custom small">Try adjusting your search parameters</p>
+                </div>
+            </div>
+
+            <!-- CREATOR RESULTS -->
+            <div th:if="${type == 'creators'}">
+                <div th:if="${creatorResults != null and !creatorResults.isEmpty()}" class="glass-panel glow p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-cosmos mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 60px;">RANK</th>
+                                    <th>CREATOR</th>
+                                    <th>DISPLAY NAME</th>
+                                    <th>FOLLOWERS</th>
+                                    <th>LIKES</th>
+                                    <th class="text-end pe-4">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="creator, iter : ${creatorResults}">
+                                    <td class="ps-4">
+                                        <span class="font-display text-pink" th:text="${iter.index + 1}">#1</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="d-flex align-items-center justify-content-center font-display"
+                                                 style="width: 36px; height: 36px; background: var(--accent-gradient); border-radius: 50%; font-size: 0.9rem; color: #fff;"
+                                                 th:text="${#strings.substring(creator.platformHandle, 0, 1).toUpperCase()}">A</div>
+                                            <a th:href="@{/dashboard/profiles/{h}(h=${creator.platformHandle})}" class="text-pink text-decoration-none font-mono">
+                                                <span th:text="${'@' + creator.platformHandle}">@handle</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted-custom" th:text="${creator.displayName ?: '—'}">—</td>
+                                    <td class="font-mono text-white small" th:text="${creator.followerCount != null ? #numbers.formatInteger(creator.followerCount, 0, 'COMMA') : '—'}">0</td>
+                                    <td class="font-mono text-white small" th:text="${creator.likesCount != null ? #numbers.formatInteger(creator.likesCount, 0, 'COMMA') : '—'}">0</td>
+                                    <td class="text-end pe-4">
+                                        <a th:href="@{/dashboard/profiles/{h}(h=${creator.platformHandle})}" class="btn-cosmos btn-sm">
+                                            <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${creatorResults == null or creatorResults.isEmpty()}" class="glass-panel text-center py-5">
+                    <div class="text-purple mb-3" style="font-size: 3rem; opacity: 0.4;"><i class="bi bi-people"></i></div>
+                    <p class="text-muted-custom font-mono">NO CREATORS FOUND</p>
+                </div>
+            </div>
+
+            <!-- MUSIC RESULTS -->
+            <div th:if="${type == 'music'}">
+                <div th:if="${musicResults != null and !musicResults.isEmpty()}" class="glass-panel glow p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-cosmos mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 60px;">RANK</th>
+                                    <th>TRACK ID</th>
+                                    <th>TRACK NAME</th>
+                                    <th>FIRST SEEN</th>
+                                    <th class="text-end pe-4">LINK</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="music, iter : ${musicResults}">
+                                    <td class="ps-4">
+                                        <span class="font-display text-purple" th:text="${iter.index + 1}">#1</span>
+                                    </td>
+                                    <td class="font-mono text-purple" th:text="${#strings.abbreviate(music.platformId, 16)}">id</td>
+                                    <td class="text-white" th:text="${music.name ?: 'Unknown Track'}">Track</td>
+                                    <td class="font-mono text-muted-custom small" th:text="${#temporals.format(music.firstSeenAt, 'MMM dd, HH:mm')}">date</td>
+                                    <td class="text-end pe-4">
+                                        <a th:if="${music.url}" th:href="${music.url}" target="_blank" class="btn-cosmos btn-sm">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${musicResults == null or musicResults.isEmpty()}" class="glass-panel text-center py-5">
+                    <div class="text-purple mb-3" style="font-size: 3rem; opacity: 0.4;"><i class="bi bi-music-note-beamed"></i></div>
+                    <p class="text-muted-custom font-mono">NO MUSIC FOUND</p>
+                </div>
+            </div>
+
+            <!-- EFFECTS RESULTS -->
+            <div th:if="${type == 'effects'}">
+                <div th:if="${effectResults != null and !effectResults.isEmpty()}" class="glass-panel glow p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-cosmos mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 60px;">RANK</th>
+                                    <th>EFFECT</th>
+                                    <th>EFFECT ID</th>
+                                    <th class="text-end pe-4">FIRST SEEN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="effect, iter : ${effectResults}">
+                                    <td class="ps-4">
+                                        <span class="font-display text-purple" th:text="${iter.index + 1}">#1</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-magic text-purple"></i>
+                                            <span class="text-white" th:text="${effect['name'] ?: 'Unknown Effect'}">Effect</span>
+                                        </div>
+                                    </td>
+                                    <td class="font-mono text-muted-custom small" th:text="${effect['platformId']}">id</td>
+                                    <td class="text-end pe-4 font-mono text-muted-custom small" th:text="${#temporals.format(effect['firstSeenAt'], 'MMM dd, HH:mm')}">date</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${effectResults == null or effectResults.isEmpty()}" class="glass-panel text-center py-5">
+                    <div class="text-purple mb-3" style="font-size: 3rem; opacity: 0.4;"><i class="bi bi-stars"></i></div>
+                    <p class="text-muted-custom font-mono">NO EFFECTS FOUND</p>
+                </div>
+            </div>
+
+            <!-- PLACES RESULTS -->
+            <div th:if="${type == 'places'}">
+                <div th:if="${placeResults != null and !placeResults.isEmpty()}" class="glass-panel glow p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-cosmos mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width: 60px;">RANK</th>
+                                    <th>LOCATION</th>
+                                    <th>PLACE ID</th>
+                                    <th class="text-end pe-4">FIRST SEEN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="place, iter : ${placeResults}">
+                                    <td class="ps-4">
+                                        <span class="font-display text-red" th:text="${iter.index + 1}">#1</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-geo-alt-fill text-red"></i>
+                                            <span class="text-white" th:text="${place['name'] ?: 'Unknown Location'}">Place</span>
+                                        </div>
+                                    </td>
+                                    <td class="font-mono text-muted-custom small" th:text="${place['platformId']}">id</td>
+                                    <td class="text-end pe-4 font-mono text-muted-custom small" th:text="${#temporals.format(place['firstSeenAt'], 'MMM dd, HH:mm')}">date</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${placeResults == null or placeResults.isEmpty()}" class="glass-panel text-center py-5">
+                    <div class="text-red mb-3" style="font-size: 3rem; opacity: 0.4;"><i class="bi bi-geo-alt"></i></div>
+                    <p class="text-muted-custom font-mono">NO PLACES FOUND</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (Related Data) -->
+        <div th:if="${topMusic != null or topEffects != null or topPlaces != null}" class="col-lg-4">
+            <!-- Top Music -->
+            <div th:if="${topMusic != null and !topMusic.isEmpty()}" class="glass-panel mb-4">
+                <div class="text-label mb-2">RELATED AUDIO</div>
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="music : ${topMusic}" 
+                         class="d-flex align-items-center justify-content-between p-2 rounded"
+                         style="background: rgba(153, 69, 255, 0.05); border: 1px solid rgba(153, 69, 255, 0.1);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-music-note text-purple"></i>
+                            <span class="text-white small" th:text="${#strings.abbreviate(music['name'] ?: 'Unknown', 25)}">Track</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Effects -->
+            <div th:if="${topEffects != null and !topEffects.isEmpty()}" class="glass-panel mb-4">
+                <div class="text-label mb-2">RELATED EFFECTS</div>
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="effect : ${topEffects}" 
+                         class="d-flex align-items-center justify-content-between p-2 rounded"
+                         style="background: rgba(255, 45, 120, 0.05); border: 1px solid rgba(255, 45, 120, 0.1);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-magic text-pink"></i>
+                            <span class="text-white small" th:text="${#strings.abbreviate(effect['name'] ?: 'Unknown', 25)}">Effect</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Places -->
+            <div th:if="${topPlaces != null and !topPlaces.isEmpty()}" class="glass-panel">
+                <div class="text-label mb-2">RELATED LOCATIONS</div>
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="place : ${topPlaces}" 
+                         class="d-flex align-items-center justify-content-between p-2 rounded"
+                         style="background: rgba(254, 44, 85, 0.05); border: 1px solid rgba(254, 44, 85, 0.1);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-geo-alt-fill text-red"></i>
+                            <span class="text-white small" th:text="${#strings.abbreviate(place['name'] ?: 'Unknown', 25)}">Place</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div th:fragment="scripts"></div>
+<div th:fragment="scripts">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Time filter buttons
+    document.querySelectorAll('.btn-time-filter').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.btn-time-filter').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('timeRangeInput').value = this.dataset.value;
+        });
+    });
+});
+</script>
+</div>
 </body>
 </html>

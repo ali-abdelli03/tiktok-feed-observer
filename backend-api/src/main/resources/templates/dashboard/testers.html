@@ -2,55 +2,83 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Testers • Observer</title>
+    <title>Operatives • NEXUS</title>
 </head>
 <body>
 <div th:fragment="content">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1">Network Agents</h2>
-            <p class="text-secondary mb-0">Active scraper instances reporting data.</p>
+            <h1 class="page-title">
+                <span class="text-gradient">Field Operatives</span>
+            </h1>
+            <p class="page-subtitle">Active surveillance nodes • Scraper instances</p>
         </div>
-        <span class="badge bg-dark border border-secondary text-secondary font-mono" th:text="${#lists.size(testers) + ' NODES ONLINE'}">0 NODES</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 glass-panel py-2 px-3">
+                <span class="status-dot online"></span>
+                <span class="font-display text-gradient" th:text="${#lists.size(testers)}">0</span>
+                <span class="text-label mb-0">NODES</span>
+            </div>
+        </div>
     </div>
 
-    <div class="glass-panel p-0 overflow-hidden">
-        <table class="table table-custom mb-0">
-            <thead>
-            <tr>
-                <th class="ps-4">Status</th>
-                <th>Agent ID</th>
-                <th>Sessions</th>
-                <th>Last Heartbeat</th>
-                <th class="text-end pe-4">Activity</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="tester : ${testers}">
-                <td class="ps-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle" style="width: 8px; height: 8px;"
-                             th:styleappend="${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1)) ? 'background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);' : 'background: var(--text-tertiary);'}">
+    <!-- Operatives Table -->
+    <div class="glass-panel glow p-0">
+        <div class="table-responsive">
+            <table class="table table-cosmos mb-0">
+                <thead>
+                <tr>
+                    <th class="ps-3">Status</th>
+                    <th>Agent Identifier</th>
+                    <th>Sessions</th>
+                    <th>Registered</th>
+                    <th>Last Heartbeat</th>
+                    <th class="text-end pe-3">Activity</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="tester : ${testers}">
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span th:if="${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1))}"
+                                  class="status-dot online"></span>
+                            <span th:unless="${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1))}"
+                                  class="status-dot offline"></span>
                         </div>
-                    </div>
-                </td>
-                <td>
-                    <span class="text-white fw-bold font-mono" th:text="${tester.username}">user</span>
-                </td>
-                <td>
-                    <span class="badge bg-dark border border-secondary text-secondary" th:text="${#lists.size(tester.sessions)}">0</span>
-                </td>
-                <td class="font-mono text-secondary small" th:text="${tester.lastActiveAt != null ? #temporals.format(tester.lastActiveAt, 'yyyy-MM-dd HH:mm:ss') : 'Never'}">
-                    Time
-                </td>
-                <td class="text-end pe-4">
-                    <div class="progress" style="height: 4px; width: 100px; display: inline-flex; background: rgba(255,255,255,0.1);">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="width: 32px; height: 32px; background: rgba(153, 69, 255, 0.2); border-radius: 4px;">
+                                <i class="bi bi-robot text-purple"></i>
+                            </div>
+                            <span class="font-mono text-white" th:text="${tester.username}">user</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-cosmos badge-purple" th:text="${#lists.size(tester.sessions)}">0</span>
+                    </td>
+                    <td class="font-mono text-muted-custom small" th:text="${tester.createdAt != null ? #temporals.format(tester.createdAt, 'MMM dd, yyyy') : 'N/A'}">Date</td>
+                    <td class="font-mono small"
+                        th:classappend="${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1))} ? 'text-gradient' : 'text-muted-custom'"
+                        th:text="${tester.lastActiveAt != null ? #temporals.format(tester.lastActiveAt, 'MMM dd HH:mm:ss') : 'Never'}">Time</td>
+                    <td class="text-end pe-3">
+                        <div class="progress-cosmos" style="width: 80px; display: inline-block;">
+                            <div class="progress-bar" role="progressbar" 
+                                 th:style="'width: ' + ${tester.lastActiveAt != null and tester.lastActiveAt.isAfter(T(java.time.LocalDateTime).now().minusHours(1)) ? '100' : '20'} + '%'"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(testers)}">
+                    <td colspan="6" class="text-center text-muted-custom py-5">
+                        <i class="bi bi-robot me-2" style="font-size: 2rem;"></i>
+                        <div class="mt-2">No operatives registered</div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

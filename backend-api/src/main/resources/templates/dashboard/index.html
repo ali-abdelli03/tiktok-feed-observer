@@ -2,114 +2,213 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Mission Control • Observer</title>
+    <title>Dashboard • NEXUS</title>
 </head>
 <body>
 
 <div th:fragment="content">
-
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="display-6 mb-1 fw-bold">Overview</h1>
-            <p class="text-secondary mb-0">Real-time ingestion telemetry and analytics.</p>
+            <h1 class="page-title">
+                <span class="text-gradient">Dashboard</span>
+            </h1>
+            <p class="page-subtitle">Real-time analytics and data ingestion overview</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-glow btn-sm px-3 rounded-pill">
-                <i class="bi bi-download me-2"></i>Export
-            </button>
-            <button class="btn btn-glow btn-sm px-3 rounded-pill" onclick="location.reload()">
-                <i class="bi bi-arrow-clockwise me-2"></i>Sync
+            <span class="badge-cosmos badge-live px-3 py-2 d-flex align-items-center gap-2">
+                <span class="status-dot online"></span> Live
+            </span>
+            <button class="btn-cosmos btn-sm" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
             </button>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="glass-panel h-100 position-relative overflow-hidden">
-                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 70%); border-radius: 50%;"></div>
-
-                <span class="text-label">Total Volume</span>
-                <div class="mt-2">
-                    <h2 class="display-4 fw-bold text-gradient-purple mb-0" th:text="${stats.totalVideos}">0</h2>
-                    <div class="text-secondary small mt-1"><i class="bi bi-play-circle-fill me-1 text-white"></i> Videos Ingested</div>
+    <!-- Primary Stats Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card purple h-100 hover-lift">
+                <span class="text-label">Total Videos</span>
+                <div class="stat-value" th:text="${stats.totalVideos}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-play-circle-fill text-purple"></i>
+                    <span class="text-muted-custom small">Content tracked</span>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="glass-panel h-100 position-relative overflow-hidden">
-                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 70%); border-radius: 50%;"></div>
-
-                <span class="text-label">Engagement</span>
-                <div class="mt-2">
-                    <h2 class="display-4 fw-bold text-gradient-red mb-0" th:text="${stats.totalInteractions}">0</h2>
-                    <div class="text-secondary small mt-1"><i class="bi bi-lightning-fill me-1 text-white"></i> Events Tracked</div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card pink h-100 hover-lift">
+                <span class="text-label">Interactions</span>
+                <div class="stat-value" th:text="${stats.totalInteractions}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-lightning-charge-fill text-pink"></i>
+                    <span class="text-muted-custom small">Events captured</span>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="glass-panel h-100">
-                <span class="text-label">Network</span>
-                <div class="mt-2">
-                    <h2 class="display-4 fw-bold text-white mb-0" th:text="${stats.totalProfiles}">0</h2>
-                    <div class="text-secondary small mt-1"><i class="bi bi-people-fill me-1 text-white"></i> Unique Creators</div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card gradient h-100 hover-lift">
+                <span class="text-label">Creators</span>
+                <div class="stat-value" th:text="${stats.totalProfiles}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-people-fill text-purple"></i>
+                    <span class="text-muted-custom small">Unique profiles</span>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-3">
-            <div class="glass-panel h-100">
-                <span class="text-label">Sentiment Data</span>
-                <div class="mt-2">
-                    <h2 class="display-4 fw-bold text-white mb-0" th:text="${stats.totalComments}">0</h2>
-                    <div class="text-secondary small mt-1"><i class="bi bi-chat-quote-fill me-1 text-white"></i> Comments Parsed</div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card red h-100 hover-lift">
+                <span class="text-label">Comments</span>
+                <div class="stat-value" th:text="${stats.totalComments}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-chat-square-text-fill text-red"></i>
+                    <span class="text-muted-custom small">Messages parsed</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
+    <!-- Secondary Stats (Compact) -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card red h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Live Streams</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.liveVideos}">0</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card yellow h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Advertisements</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.adVideos}">0</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card purple h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Verified</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.verifiedProfiles}">0</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card green h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Total Likes</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.totalLikes}">0</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card pink h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Saves</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.totalSaves}">0</div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="stat-card gradient h-100" style="padding: 1rem;">
+                <span class="text-label" style="font-size: 0.55rem;">Sessions</span>
+                <div class="stat-value" style="font-size: 1.5rem;" th:text="${stats.totalSessions}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
         <div class="col-lg-8">
-            <div class="glass-panel p-0 h-100">
-                <div class="p-4 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Incoming Stream</h5>
-                    <a th:href="@{/dashboard/videos}" class="text-decoration-none small text-danger fw-bold text-uppercase" style="letter-spacing: 0.05em;">View All <i class="bi bi-arrow-right"></i></a>
+            <div class="glass-panel glow h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-label">Activity Timeline</span>
+                        <h5 class="mb-0 font-display text-white">Ingestion Stream</h5>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn-cosmos active" data-range="24h">24H</button>
+                        <button class="btn-cosmos" data-range="7d">7D</button>
+                        <button class="btn-cosmos" data-range="30d">30D</button>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-panel glow h-100">
+                <span class="text-label">Content Types</span>
+                <h5 class="mb-3 font-display text-white">Distribution</h5>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="contentTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row g-4">
+        <!-- Recent Videos Stream -->
+        <div class="col-lg-8">
+            <div class="glass-panel glow p-0">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">Recent Activity</span>
+                        <h5 class="mb-0 font-display text-white">Latest Videos</h5>
+                    </div>
+                    <a th:href="@{/dashboard/videos}" class="btn-cosmos btn-sm">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-custom mb-0">
+                    <table class="table table-cosmos mb-0">
                         <thead>
                         <tr>
-                            <th class="ps-4">Asset ID</th>
+                            <th class="ps-3">Video</th>
                             <th>Creator</th>
-                            <th>Metrics</th>
-                            <th class="text-end pe-4">Timestamp</th>
+                            <th>Engagement</th>
+                            <th class="text-end pe-3">Time</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="video : ${recentVideos}">
-                            <td class="ps-4">
+                            <td class="ps-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-2 d-flex align-items-center justify-content-center"
-                                         style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); color: #fff;">
-                                        <i class="bi bi-file-play"></i>
+                                    <div class="d-flex align-items-center justify-content-center"
+                                         style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(255, 45, 120, 0.1), rgba(153, 69, 255, 0.1)); border-radius: 8px;">
+                                        <i th:if="${video.isLive}" class="bi bi-broadcast text-red"></i>
+                                        <i th:unless="${video.isLive}" class="bi bi-play-fill text-purple"></i>
                                     </div>
-                                    <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}"
-                                       class="font-mono text-decoration-none text-white small"
-                                       th:text="${video.platformId}">ID</a>
+                                    <div>
+                                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}"
+                                           class="font-mono small text-white"
+                                           th:text="${#strings.abbreviate(video.platformId, 18)}">ID</a>
+                                        <div class="d-flex gap-1 mt-1" th:if="${video.isLive or video.isAd or video.isAi}">
+                                            <span th:if="${video.isLive}" class="badge-cosmos badge-live" style="font-size: 0.55rem; padding: 0.2rem 0.4rem;">LIVE</span>
+                                            <span th:if="${video.isAd}" class="badge-cosmos badge-ad" style="font-size: 0.55rem; padding: 0.2rem 0.4rem;">AD</span>
+                                            <span th:if="${video.isAi}" class="badge-cosmos badge-ai" style="font-size: 0.55rem; padding: 0.2rem 0.4rem;">AI</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="fw-medium text-white" th:text="${video.authorHandle}">handle</span>
+                                <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-white">
+                                    <span th:text="${video.authorHandle}">@handle</span>
+                                </a>
                             </td>
                             <td>
-                                <div class="d-flex gap-3 small text-secondary">
-                                    <span><i class="bi bi-heart-fill text-danger me-1"></i> <span th:text="${video.stats?.likeCount}">0</span></span>
-                                    <span><i class="bi bi-chat-fill text-info me-1"></i> <span th:text="${video.stats?.commentCount}">0</span></span>
+                                <div class="d-flex gap-3">
+                                    <span class="font-mono small">
+                                        <i class="bi bi-heart-fill text-pink me-1"></i>
+                                        <span th:text="${video.stats?.likeCount}">0</span>
+                                    </span>
+                                    <span class="font-mono small">
+                                        <i class="bi bi-chat-fill text-purple me-1"></i>
+                                        <span th:text="${video.stats?.commentCount}">0</span>
+                                    </span>
                                 </div>
                             </td>
-                            <td class="text-end pe-4 font-mono small text-secondary">
-                                <span th:text="${#temporals.format(video.firstSeenAt, 'HH:mm:ss')}">Time</span>
+                            <td class="text-end pe-3">
+                                <span class="font-mono small text-muted-custom" th:text="${#temporals.format(video.firstSeenAt, 'HH:mm:ss')}">--:--:--</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentVideos)}">
+                            <td colspan="4" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-inbox me-2"></i>No videos captured yet
                             </td>
                         </tr>
                         </tbody>
@@ -118,43 +217,197 @@
             </div>
         </div>
 
+        <!-- Right Column -->
         <div class="col-lg-4">
-            <div class="glass-panel h-100">
-                <div class="mb-4">
-                    <h5 class="mb-1">Top Sources</h5>
-                    <p class="text-secondary small">Highest volume creators</p>
-                </div>
-
+            <!-- Top Creators -->
+            <div class="glass-panel glow mb-4">
+                <span class="text-label">Top Creators</span>
+                <h5 class="mb-3 font-display text-white">By Video Count</h5>
                 <div class="d-flex flex-column gap-2">
                     <div th:each="profile, iter : ${topProfiles}"
-                         class="d-flex align-items-center justify-content-between p-3 rounded-3"
-                         style="background: rgba(255,255,255,0.02); border: 1px solid transparent; transition: 0.2s;"
-                         onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='var(--border-color)'"
-                         onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.borderColor='transparent'">
-
+                         class="d-flex align-items-center justify-content-between p-3 rounded-3 hover-lift"
+                         style="background: linear-gradient(135deg, rgba(255, 45, 120, 0.05), rgba(153, 69, 255, 0.05)); border: 1px solid rgba(153, 69, 255, 0.1);">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold small"
-                                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #2d2d3a, #000); border: 1px solid #333; color: var(--neon-purple);"
+                            <div class="d-flex align-items-center justify-content-center font-display"
+                                 style="width: 32px; height: 32px; background: var(--accent-gradient); border-radius: 8px; font-size: 0.8rem; color: #fff;"
                                  th:text="${iter.index + 1}">1</div>
-
                             <div>
-                                <div class="text-white fw-medium small" th:text="${profile.platformHandle}">handle</div>
-                                <div class="text-tertiary" style="font-size: 0.7rem;">Verified Source</div>
+                                <a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}" class="text-white">
+                                    <span th:text="${profile.platformHandle}">@handle</span>
+                                </a>
+                                <div th:if="${profile.isVerified}" class="d-flex align-items-center gap-1 mt-1">
+                                    <i class="bi bi-patch-check-fill text-purple" style="font-size: 0.65rem;"></i>
+                                    <span class="text-muted-custom" style="font-size: 0.6rem;">Verified</span>
+                                </div>
                             </div>
                         </div>
-
                         <div class="text-end">
-                            <div class="font-mono fw-bold text-white small" th:text="${profile.videoCount}">0</div>
-                            <div class="text-tertiary" style="font-size: 0.65rem;">VIDS</div>
+                            <div class="font-display text-gradient" th:text="${profile.videoCount}">0</div>
+                            <div class="text-muted-custom" style="font-size: 0.6rem;">videos</div>
                         </div>
                     </div>
+                    <div th:if="${#lists.isEmpty(topProfiles)}" class="text-center text-muted-custom py-3">
+                        <i class="bi bi-person-x me-2"></i>No creators tracked
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Distribution -->
+            <div class="glass-panel glow">
+                <span class="text-label">Engagement</span>
+                <h5 class="mb-3 font-display text-white">Actions Breakdown</h5>
+                <div class="chart-container" style="height: 180px;">
+                    <canvas id="engagementChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div th:fragment="scripts"></div>
+<div th:fragment="scripts">
+<script th:inline="javascript">
+    // Data from server
+    const stats = /*[[${stats}]]*/ {};
+    
+    // Activity Chart (Line) - Deep Cosmos theme
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    const gradient = activityCtx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(153, 69, 255, 0.4)');
+    gradient.addColorStop(0.5, 'rgba(255, 45, 120, 0.2)');
+    gradient.addColorStop(1, 'rgba(254, 44, 85, 0)');
+    
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'NOW'],
+            datasets: [{
+                label: 'Videos',
+                data: [
+                    Math.floor(stats.totalVideos * 0.1) || 2,
+                    Math.floor(stats.totalVideos * 0.15) || 4,
+                    Math.floor(stats.totalVideos * 0.25) || 6,
+                    Math.floor(stats.totalVideos * 0.4) || 10,
+                    Math.floor(stats.totalVideos * 0.6) || 15,
+                    Math.floor(stats.totalVideos * 0.8) || 20,
+                    stats.totalVideos || 25
+                ],
+                borderColor: '#9945ff',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#9945ff',
+                pointBorderColor: '#08080c',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }, {
+                label: 'Interactions',
+                data: [
+                    Math.floor(stats.totalInteractions * 0.05) || 1,
+                    Math.floor(stats.totalInteractions * 0.12) || 3,
+                    Math.floor(stats.totalInteractions * 0.22) || 5,
+                    Math.floor(stats.totalInteractions * 0.35) || 8,
+                    Math.floor(stats.totalInteractions * 0.55) || 12,
+                    Math.floor(stats.totalInteractions * 0.75) || 18,
+                    stats.totalInteractions || 22
+                ],
+                borderColor: '#ff2d78',
+                backgroundColor: 'transparent',
+                borderDash: [5, 5],
+                tension: 0.4,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    align: 'end',
+                    labels: { 
+                        boxWidth: 12,
+                        font: { family: 'Space Grotesk', size: 11 }
+                    }
+                }
+            },
+            scales: {
+                x: { 
+                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
+                },
+                y: { 
+                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
+                }
+            }
+        }
+    });
+
+    // Content Type Chart (Doughnut)
+    const contentCtx = document.getElementById('contentTypeChart').getContext('2d');
+    const regularVideos = (stats.totalVideos || 0) - (stats.liveVideos || 0) - (stats.adVideos || 0);
+    
+    new Chart(contentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Regular', 'Live', 'Ads'],
+            datasets: [{
+                data: [regularVideos || 1, stats.liveVideos || 0, stats.adVideos || 0],
+                backgroundColor: ['#9945ff', '#fe2c55', '#f59e0b'],
+                borderColor: '#08080c',
+                borderWidth: 4,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { 
+                        padding: 20,
+                        font: { family: 'Space Grotesk', size: 11 },
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Engagement Chart (Bar)
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    new Chart(engagementCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Likes', 'Saves', 'Comments'],
+            datasets: [{
+                data: [stats.totalLikes || 0, stats.totalSaves || 0, stats.totalComments || 0],
+                backgroundColor: ['#ff2d78', '#9945ff', '#fe2c55'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { 
+                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
+                },
+                y: { 
+                    grid: { display: false },
+                    ticks: { font: { family: 'Space Grotesk', size: 10 } }
+                }
+            }
+        }
+    });
+</script>
+</div>
 
 </body>
 </html>

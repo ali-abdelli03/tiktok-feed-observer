@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Audio Signals • NEXUS</title>
+</head>
+<body>
+
+<div th:fragment="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">
+                <span class="text-gradient">Audio Signals</span>
+            </h1>
+            <p class="page-subtitle">Sound intelligence • Trending audio & music tracking</p>
+        </div>
+        <div class="d-flex gap-2">
+            <form class="d-flex gap-2" th:action="@{/dashboard/music}">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent" style="border: 1px solid rgba(153, 69, 255, 0.3); border-right: none; background: rgba(18, 18, 28, 0.6) !important; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-search text-purple"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control-cosmos" 
+                           placeholder="Search audio..." th:value="${query}" style="border-left: none; border-radius: 0 10px 10px 0; min-width: 180px;">
+                </div>
+                <button type="submit" class="btn-cosmos btn-sm">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card purple h-100">
+                <span class="text-label">TOTAL TRACKS</span>
+                <div class="stat-value" th:text="${totalMusic}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-music-note-beamed text-purple"></i>
+                    <span class="text-muted-custom small">Unique audio sources</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card pink h-100">
+                <span class="text-label">TOTAL EFFECTS</span>
+                <div class="stat-value" th:text="${totalEffects}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-stars text-pink"></i>
+                    <span class="text-muted-custom small">Visual effects tracked</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="stat-card red h-100">
+                <span class="text-label">LOCATIONS</span>
+                <div class="stat-value" th:text="${totalPlaces}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-geo-alt text-red"></i>
+                    <span class="text-muted-custom small">Place tags</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Music List -->
+        <div class="col-lg-8">
+            <div class="glass-panel glow p-0 h-100">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">AUDIO LIBRARY</span>
+                        <h5 class="mb-0 font-display text-white">Tracked Sounds</h5>
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-cosmos mb-0">
+                        <thead style="position: sticky; top: 0; background: var(--cosmos-dark);">
+                        <tr>
+                            <th class="ps-3">Audio ID</th>
+                            <th>Track Name</th>
+                            <th class="text-end pe-3">First Seen</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="music : ${musicList}">
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center"
+                                         style="width: 32px; height: 32px; background: rgba(153, 69, 255, 0.2); border-radius: 50%;">
+                                        <i class="bi bi-music-note text-purple"></i>
+                                    </div>
+                                    <span class="font-mono text-muted-custom small" th:text="${#strings.abbreviate(music.platformId, 16)}">id</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-white" th:text="${music.name ?: 'Unknown Track'}">Track Name</div>
+                                <a th:if="${music.url}" th:href="${music.url}" target="_blank" class="small text-purple">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Open
+                                </a>
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="font-mono small text-muted-custom" th:text="${#temporals.format(music.firstSeenAt, 'MMM dd, HH:mm')}">--</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(musicList)}">
+                            <td colspan="3" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-music-note-beamed me-2"></i>No audio tracked yet
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Effects and Places -->
+        <div class="col-lg-4">
+            <!-- Effects Card -->
+            <div class="glass-panel mb-4">
+                <span class="text-label">VISUAL EFFECTS</span>
+                <h5 class="mb-3 font-display text-white">Recent Effects</h5>
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="effect : ${recentEffects}"
+                         class="d-flex align-items-center justify-content-between p-2 rounded"
+                         style="background: rgba(255, 45, 120, 0.05); border: 1px solid rgba(255, 45, 120, 0.1);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-magic text-pink"></i>
+                            <span class="text-white small" th:text="${effect.name ?: 'Unknown Effect'}">Effect</span>
+                        </div>
+                        <span class="font-mono text-muted-custom" style="font-size: 0.65rem;" th:text="${effect.platformId}">id</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(recentEffects)}" class="text-center text-muted-custom py-3">
+                        <i class="bi bi-stars me-2"></i>No effects tracked
+                    </div>
+                </div>
+            </div>
+
+            <!-- Places Card -->
+            <div class="glass-panel">
+                <span class="text-label">LOCATION TAGS</span>
+                <h5 class="mb-3 font-display text-white">Places Detected</h5>
+                <div class="d-flex flex-column gap-2">
+                    <div th:each="place : ${recentPlaces}"
+                         class="d-flex align-items-center justify-content-between p-2 rounded"
+                         style="background: rgba(254, 44, 85, 0.05); border: 1px solid rgba(254, 44, 85, 0.1);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-geo-alt-fill text-red"></i>
+                            <span class="text-white small" th:text="${place.name ?: 'Unknown Location'}">Place</span>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(recentPlaces)}" class="text-center text-muted-custom py-3">
+                        <i class="bi bi-geo-alt me-2"></i>No locations tracked
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="scripts">
+</div>
+
+</body>
+</html>

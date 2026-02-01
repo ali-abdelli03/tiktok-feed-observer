@@ -2,92 +2,135 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Video Feed • Observer</title>
+    <title>Videos • NEXUS</title>
 </head>
 <body>
 
 <div th:fragment="content">
-
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1">Video Feed</h2>
-            <p class="text-secondary m-0">Global ingestion history and metadata.</p>
+            <h1 class="page-title">
+                <span class="text-gradient">Videos</span>
+            </h1>
+            <p class="page-subtitle">Content library with full metadata and engagement metrics</p>
         </div>
-
         <form class="d-flex gap-2" th:action="@{/dashboard/search}">
-            <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
-                <input type="text" name="q" class="form-control bg-dark text-white border-secondary" placeholder="Filter by ID, Author..." style="min-width: 300px;">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-transparent" style="border: 1px solid rgba(153, 69, 255, 0.3); border-right: none; background: rgba(18, 18, 28, 0.6) !important; border-radius: 10px 0 0 10px;">
+                    <i class="bi bi-search text-purple"></i>
+                </span>
+                <input type="text" name="q" class="form-control-cosmos" 
+                       placeholder="Search videos..." style="border-left: none; border-radius: 0 10px 10px 0; min-width: 250px;">
                 <input type="hidden" name="type" value="videos">
             </div>
         </form>
     </div>
 
-    <div class="glass-panel p-0 overflow-hidden">
+    <!-- Stats Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-auto">
+            <div class="d-flex align-items-center gap-3 glass-panel py-2 px-4">
+                <span class="text-label mb-0">Total</span>
+                <span class="font-display text-gradient" th:text="${videos.totalElements}">0</span>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center gap-3 glass-panel py-2 px-4">
+                <span class="text-label mb-0">Page</span>
+                <span class="font-mono text-white">
+                    <span th:text="${videos.number + 1}">1</span> / <span th:text="${videos.totalPages}">1</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Table -->
+    <div class="glass-panel glow p-0">
         <div class="table-responsive">
-            <table class="table table-custom mb-0">
+            <table class="table table-cosmos mb-0">
                 <thead>
                 <tr>
-                    <th class="ps-4" style="width: 25%;">Video Asset</th>
-                    <th style="width: 20%;">Creator</th>
-                    <th style="width: 25%;">Context / Desc</th>
-                    <th style="width: 15%;">Performance</th>
-                    <th class="text-end pe-4">Actions</th>
+                    <th class="ps-3" style="width: 25%;">Video</th>
+                    <th style="width: 15%;">Creator</th>
+                    <th style="width: 30%;">Description</th>
+                    <th style="width: 15%;">Engagement</th>
+                    <th class="text-end pe-3" style="width: 15%;">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="video : ${videos}">
-                    <td class="ps-4">
-                        <div class="d-flex flex-column">
-                            <span class="font-mono text-white small mb-1" th:text="${video.platformId}">ID</span>
-                            <span class="badge rounded-pill bg-dark border border-secondary text-secondary fw-normal"
-                                  style="width: fit-content; font-size: 0.65rem;"
-                                  th:text="${#temporals.format(video.firstSeenAt, 'MMM dd • HH:mm')}">Date</span>
-                        </div>
-                    </td>
-                    <td>
-                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-decoration-none">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle bg-gradient" style="width: 8px; height: 8px; background: var(--neon-purple);"></div>
-                                <span class="text-white small fw-medium" th:text="${video.authorHandle}">@user</span>
-                            </div>
-                        </a>
-                    </td>
-                    <td>
-                        <div class="text-secondary small text-truncate" style="max-width: 300px; opacity: 0.8;"
-                             th:text="${video.description}">Description content...</div>
-                    </td>
-                    <td>
+                    <td class="ps-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-1">
-                                <i class="bi bi-heart-fill text-danger" style="font-size: 0.7rem;"></i>
-                                <span class="font-mono small text-white" th:text="${video.stats?.likeCount}">0</span>
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, rgba(255, 45, 120, 0.15), rgba(153, 69, 255, 0.15)); border-radius: 10px;">
+                                <i th:if="${video.isLive}" class="bi bi-broadcast text-red"></i>
+                                <i th:if="${video.isAd and !video.isLive}" class="bi bi-megaphone text-yellow" style="color: #f59e0b;"></i>
+                                <i th:if="${!video.isLive and !video.isAd}" class="bi bi-play-fill text-purple"></i>
                             </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <i class="bi bi-chat-fill text-primary" style="font-size: 0.7rem;"></i>
-                                <span class="font-mono small text-white" th:text="${video.stats?.commentCount}">0</span>
+                            <div>
+                                <div class="font-mono text-white small" th:text="${#strings.abbreviate(video.platformId, 20)}">ID</div>
+                                <div class="d-flex gap-1 mt-1">
+                                    <span th:if="${video.isLive}" class="badge-cosmos badge-live" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">LIVE</span>
+                                    <span th:if="${video.isAd}" class="badge-cosmos badge-ad" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">AD</span>
+                                    <span th:if="${video.isAi}" class="badge-cosmos badge-pink" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">AI</span>
+                                </div>
+                                <div class="text-muted-custom mt-1" style="font-size: 0.7rem;" th:text="${#temporals.format(video.firstSeenAt, 'MMM dd • HH:mm')}">Date</div>
                             </div>
                         </div>
                     </td>
-                    <td class="text-end pe-4">
-                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}"
-                           class="btn btn-sm btn-outline-secondary border-secondary text-white"
-                           style="font-size: 0.75rem;">
-                            Analyze
+                    <td>
+                        <a th:href="@{/dashboard/profiles/{h}(h=${video.authorHandle})}" class="text-purple">
+                            <span th:text="${video.authorHandle}">@user</span>
                         </a>
+                    </td>
+                    <td>
+                        <div class="text-muted-custom small text-truncate" style="max-width: 300px;" th:text="${video.description}">Description...</div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <span class="font-mono small">
+                                <i class="bi bi-heart-fill text-pink me-1"></i>
+                                <span th:text="${video.stats?.likeCount ?: 0}">0</span>
+                            </span>
+                            <span class="font-mono small">
+                                <i class="bi bi-chat-fill text-purple me-1"></i>
+                                <span th:text="${video.stats?.commentCount ?: 0}">0</span>
+                            </span>
+                        </div>
+                    </td>
+                    <td class="text-end pe-3">
+                        <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="btn-cosmos btn-sm">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(videos.content)}">
+                    <td colspan="5" class="text-center text-muted-custom py-5">
+                        <i class="bi bi-inbox me-2" style="font-size: 2rem;"></i>
+                        <div class="mt-2">No videos captured yet</div>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top border-secondary border-opacity-10">
-            <span class="text-tertiary small font-mono">
-                PAGE <span th:text="${videos.number + 1}">1</span> / <span th:text="${videos.totalPages}">10</span>
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-top: 1px solid rgba(153, 69, 255, 0.1);">
+            <span class="font-mono small text-muted-custom">
+                Showing <span class="text-white" th:text="${videos.numberOfElements}">0</span> of <span class="text-white" th:text="${videos.totalElements}">0</span>
             </span>
-            <div class="btn-group">
-                <a th:if="${videos.hasPrevious()}" th:href="@{/dashboard/videos(page=${videos.number - 1})}" class="btn btn-sm btn-outline-secondary text-white">Previous</a>
-                <a th:if="${videos.hasNext()}" th:href="@{/dashboard/videos(page=${videos.number + 1})}" class="btn btn-sm btn-outline-secondary text-white">Next</a>
+            <div class="d-flex gap-2">
+                <a th:if="${videos.hasPrevious()}" 
+                   th:href="@{/dashboard/videos(page=${videos.number - 1})}" 
+                   class="btn-cosmos btn-sm">
+                    <i class="bi bi-chevron-left me-1"></i> Prev
+                </a>
+                <a th:if="${videos.hasNext()}" 
+                   th:href="@{/dashboard/videos(page=${videos.number + 1})}" 
+                   class="btn-cosmos btn-sm">
+                    Next <i class="bi bi-chevron-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>

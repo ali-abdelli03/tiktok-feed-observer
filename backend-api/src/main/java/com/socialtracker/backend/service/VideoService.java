@@ -280,6 +280,10 @@ public class VideoService {
         return videoRepository.count();
     }
     
+    public Optional<Video> findById(Long id) {
+        return videoRepository.findById(id);
+    }
+    
     public long countAds() {
         return videoRepository.countAds();
     }
@@ -320,8 +324,8 @@ public class VideoService {
                         .build())
                 .collect(Collectors.toList());
         // Usa getCapturedAt()
-        if (video.getVideoStats() != null && !video.getVideoStats().isEmpty()) {
-            VideoStats latest = video.getVideoStats().stream()
+        if (video.getStats() != null && !video.getStats().isEmpty()) {
+            VideoStats latest = video.getStats().stream()
                     .sorted((a, b) -> {
                         if (b.getCapturedAt() == null) return -1;
                         if (a.getCapturedAt() == null) return 1;

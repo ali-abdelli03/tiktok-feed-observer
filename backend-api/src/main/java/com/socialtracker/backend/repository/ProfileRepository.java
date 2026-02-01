@@ -32,4 +32,33 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     
     @Query("SELECT COUNT(p) FROM Profile p WHERE p.isVerified = true")
     long countVerifiedProfiles();
+    
+    // ==================== ADVANCED SEARCH QUERIES ====================
+    
+    /**
+     * Advanced profile search with filters
+     */
+    @Query(value = "SELECT * FROM profile p " +
+           "WHERE (:search IS NULL OR :search = '' " +
+           "       OR LOWER(CAST(p.platform_handle AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%')) " +
+           "       OR LOWER(CAST(p.display_name AS TEXT)) LIKE LOWER(CONCAT('%', CAST(:search AS TEXT), '%'))) " +
+           "AND (:verifiedOnly = false OR p.is_verified = true) " +
+           "ORDER BY p.last_updated_at DESC", nativeQuery = true)
+    List<Profile> advancedSearch(
+            @Param("search") String search,
+            @Param("verifiedOnly") boolean verifiedOnly);
+    
+    /**
+     * Find profiles ordered by most recent activity (lastUpdatedAt)
+     */
+    @Query("SELECT p FROM Profile p ORDER BY p.lastUpdatedAt DESC")
+    List<Profile> findAllOrderByRecentActivity(Pageable pageable);
+    
+    /**
+     * Find profiles that have videos, ordered by latest video
+     */
+    @Query("SELECT DISTINCT p FROM Profile p JOIN p.videos v " +
+           "WHERE (:verifiedOnly = false OR p.isVerified = true) " +
+           "ORDER BY v.firstSeenAt DESC")
+    List<Profile> findActiveCreators(@Param("verifiedOnly") boolean verifiedOnly, Pageable pageable);
 }

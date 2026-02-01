@@ -187,13 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(isActive ? 'Scraper started!' : 'Scraper stopped', 'success');
             
         } catch (error) {
-            showToast('Reloading page to inject script...', 'info');
-            
-            // If message fails, content script isn't loaded. Reload page to inject it.
-            await chrome.tabs.reload(tab.id);
-            
-            await chrome.storage.local.set({ scraperActive: false });
-            updateUI(false);
+            if (action === 'START') {
+                // Content script not loaded - set scraperActive BEFORE reload
+                // so it auto-starts after the page loads
+                showToast('Injecting script, please wait...', 'info');
+                await chrome.storage.local.set({ scraperActive: true });
+                await chrome.tabs.reload(tab.id);
+                updateUI(true);
+            } else {
+                // For STOP, just reset state
+                await chrome.storage.local.set({ scraperActive: false });
+                updateUI(false);
+            }
         } finally {
             btn.classList.remove('loading');
         }

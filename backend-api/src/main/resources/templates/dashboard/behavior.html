@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Behavior Intel • NEXUS</title>
+</head>
+<body>
+
+<div th:fragment="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">
+                <span class="text-gradient">Behavior Intel</span>
+            </h1>
+            <p class="page-subtitle">User behavior analytics • Watch time & interaction patterns</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn-cosmos btn-sm" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i> REFRESH
+            </button>
+        </div>
+    </div>
+
+    <!-- Watch Time Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card purple h-100">
+                <span class="text-label">TOTAL WATCH TIME</span>
+                <div class="stat-value" th:text="${totalWatchTimeFormatted}">0h 0m</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-clock-history text-purple"></i>
+                    <span class="text-muted-custom small">Cumulative duration</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card gradient h-100">
+                <span class="text-label">AVG WATCH TIME</span>
+                <div class="stat-value" th:text="${avgWatchTimeFormatted}">0s</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-hourglass-split text-gradient"></i>
+                    <span class="text-muted-custom small">Per video</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card pink h-100">
+                <span class="text-label">TOTAL SEARCHES</span>
+                <div class="stat-value" th:text="${totalSearches}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-search text-pink"></i>
+                    <span class="text-muted-custom small">Query events</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card red h-100">
+                <span class="text-label">PROFILE VISITS</span>
+                <div class="stat-value" th:text="${totalProfileVisits}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-person-check text-red"></i>
+                    <span class="text-muted-custom small">Creator pages</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="glass-panel glow h-100">
+                <span class="text-label">INTERACTION BREAKDOWN</span>
+                <h5 class="mb-3 font-display text-white">Action Types</h5>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="interactionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="glass-panel glow h-100">
+                <span class="text-label">WATCH TIME DISTRIBUTION</span>
+                <h5 class="mb-3 font-display text-white">Duration Analysis</h5>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="watchTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Tables Row -->
+    <div class="row g-4">
+        <!-- Top Searched Queries -->
+        <div class="col-lg-6">
+            <div class="glass-panel glow p-0 h-100">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">QUERY ANALYSIS</span>
+                        <h5 class="mb-0 font-display text-white">Top Searches</h5>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-cosmos mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-3">Rank</th>
+                            <th>Query</th>
+                            <th class="text-end pe-3">Count</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="search, iter : ${topSearches}">
+                            <td class="ps-3">
+                                <span class="font-display text-purple" th:text="${iter.index + 1}">#1</span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-white" th:text="${search.query}">query</span>
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="badge-cosmos badge-purple" th:text="${search.count}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(topSearches)}">
+                            <td colspan="3" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-search me-2"></i>No search data yet
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Watched Videos -->
+        <div class="col-lg-6">
+            <div class="glass-panel glow p-0 h-100">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">RETENTION ANALYSIS</span>
+                        <h5 class="mb-0 font-display text-white">Most Watched</h5>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-cosmos mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-3">Video ID</th>
+                            <th>Watch Time</th>
+                            <th class="text-end pe-3">Views</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="video : ${topWatched}">
+                            <td class="ps-3">
+                                <a th:href="@{/dashboard/videos/{id}(id=${video.platformId})}" class="font-mono text-purple">
+                                    <span th:text="${#strings.abbreviate(video.platformId, 16)}">video_id</span>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="font-mono text-white" th:text="${video.watchTimeFormatted}">0s</span>
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="badge-cosmos badge-pink" th:text="${video.viewCount}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(topWatched)}">
+                            <td colspan="3" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-eye-slash me-2"></i>No watch data yet
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Interactions -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="glass-panel glow p-0">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">ACTIVITY LOG</span>
+                        <h5 class="mb-0 font-display text-white">Recent Interactions</h5>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-cosmos mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-3">Type</th>
+                            <th>Video</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                            <th class="text-end pe-3">Time</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="interaction : ${recentInteractions}">
+                            <td class="ps-3">
+                                <span class="badge-cosmos badge-purple" th:text="${interaction['interactionType']}">TYPE</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/dashboard/videos/{id}(id=${interaction['videoPlatformId']})}" class="font-mono text-purple">
+                                    <span th:text="${#strings.abbreviate(interaction['videoPlatformId'] ?: 'N/A', 16)}">video_id</span>
+                                </a>
+                            </td>
+                            <td class="text-white small" th:text="${interaction['actionDetails'] ?: '—'}">action</td>
+                            <td>
+                                <span th:if="${interaction['newState']}" class="badge-cosmos badge-pink" th:text="${interaction['newState']}">state</span>
+                                <span th:unless="${interaction['newState']}" class="text-muted-custom">—</span>
+                            </td>
+                            <td class="text-end pe-3 font-mono text-muted-custom small" th:text="${#temporals.format(interaction['timestamp'], 'MMM dd HH:mm')}">time</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentInteractions)}">
+                            <td colspan="5" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-activity me-2"></i>No interaction data yet
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="scripts">
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // Interaction Chart
+    const interactionCtx = document.getElementById('interactionChart');
+    if (interactionCtx) {
+        const interactionData = /*[[${interactionBreakdown}]]*/ {};
+        const labels = Object.keys(interactionData);
+        const values = Object.values(interactionData);
+        
+        if (labels.length > 0) {
+            new Chart(interactionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(153, 69, 255, 0.8)',
+                            'rgba(255, 45, 120, 0.8)',
+                            'rgba(254, 44, 85, 0.8)',
+                            'rgba(153, 69, 255, 0.5)',
+                            'rgba(255, 45, 120, 0.5)'
+                        ],
+                        borderColor: [
+                            '#9945ff',
+                            '#ff2d78',
+                            '#fe2c55',
+                            '#9945ff',
+                            '#ff2d78'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'JetBrains Mono', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Watch Time Chart
+    const watchTimeCtx = document.getElementById('watchTimeChart');
+    if (watchTimeCtx) {
+        const watchTimeData = /*[[${watchTimeDistribution}]]*/ [];
+        
+        if (watchTimeData && watchTimeData.length > 0) {
+            const labels = watchTimeData.map(d => d.label || d.range);
+            const values = watchTimeData.map(d => d.count);
+            
+            new Chart(watchTimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Videos',
+                        data: values,
+                        backgroundColor: 'rgba(153, 69, 255, 0.6)',
+                        borderColor: '#9945ff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(153, 69, 255, 0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+</div>
+
+</body>
+</html>

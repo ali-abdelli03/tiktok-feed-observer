@@ -24,6 +24,8 @@ class CommentScraper {
     init() {
         if (this.observer) return;
         
+        console.log('[CommentScraper] Initializing...');
+        
         // Use a throttled callback to prevent excessive processing
         let throttleTimer = null;
         const throttledCheck = () => {
@@ -38,43 +40,75 @@ class CommentScraper {
         
         this.observer = new MutationObserver(throttledCheck);
         
-        // Prefer observing a narrower scope if aside exists
-        const aside = document.querySelector('aside');
-        const observeTarget = aside || document.body;
+        // Always observe document.body to catch aside being added later
+        this.observer.observe(document.body, { childList: true, subtree: true });
         
-        this.observer.observe(observeTarget, { childList: true, subtree: true });
-        
+        // Do initial check
         this._checkForComments();
-        console.log('[CommentScraper] Initialized, observing:', observeTarget.tagName);
+        
+        console.log('[CommentScraper] Initialized, observing document.body for comment containers');
     }
     
     _checkForComments() {
         const container = this._findCommentContainer();
         
         if (container && container !== this.currentContainer) {
+            console.log('[CommentScraper] Found new comment container');
             this._startObserving(container);
         } else if (!container && this.currentContainer) {
+            console.log('[CommentScraper] Comment container lost');
             this._stopObserving();
         }
     }
     
     /**
-     * Find comment container - For You feed uses the aside section.
-     * Priority: aside with comments > comment-list
+     * Find comment container - check multiple possible locations.
+     * Comments can appear in:
+     * - aside section (For You feed expanded view)
+     * - comment-list div (video detail page)
+     * - any element with comment-level-1 children
      */
     _findCommentContainer() {
-        // For You feed: comments are always in the aside section
+        // Strategy 1: Check aside sections for comments
         const asides = document.querySelectorAll('aside');
         for (const aside of asides) {
-            if (aside.querySelector('[data-e2e="comment-level-1"]') || aside.querySelector('[data-e2e="comment-level-2"]')) {
+            if (aside.querySelector('[data-e2e="comment-level-1"]') || 
+                aside.querySelector('[data-e2e="comment-level-2"]') ||
+                aside.querySelector('[data-e2e="comment-list"]')) {
+                console.log('[CommentScraper] Found comments in aside');
                 return aside;
             }
         }
         
-        // Fallback: check for comment-list (rare in For You)
-        const commentList = document.querySelector('[data-e2e="comment-list"]');
-        if (commentList && (commentList.querySelector('[data-e2e="comment-level-1"]') || commentList.querySelector('[data-e2e="comment-level-2"]'))) {
-            return commentList;
+        // Strategy 2: Check for comment-list anywhere on page
+        const commentLists = document.querySelectorAll('[data-e2e="comment-list"]');
+        for (const commentList of commentLists) {
+            if (commentList.querySelector('[data-e2e="comment-level-1"]') || 
+                commentList.querySelector('[data-e2e="comment-level-2"]')) {
+                console.log('[CommentScraper] Found comments in comment-list');
+                return commentList;
+            }
+        }
+        
+        // Strategy 3: Look for any container with comment divs
+        const commentDivs = document.querySelectorAll('[data-e2e="comment-level-1"]');
+        if (commentDivs.length > 0) {
+            // Find the common container
+            const firstComment = commentDivs[0];
+            let container = firstComment.parentElement;
+            // Go up to find a reasonable container (not body)
+            while (container && container !== document.body) {
+                if (container.tagName === 'ASIDE' || 
+                    container.matches?.('[data-e2e="comment-list"]') ||
+                    container.querySelectorAll('[data-e2e="comment-level-1"]').length > 1) {
+                    console.log('[CommentScraper] Found comments via parent traversal');
+                    return container;
+                }
+                container = container.parentElement;
+            }
+            // If still not found, return the parent of first comment
+            console.log('[CommentScraper] Using first comment parent as container');
+            return firstComment.parentElement;
         }
         
         return null;
@@ -87,8 +121,17 @@ class CommentScraper {
         this.currentVideoId = this._getCurrentVideoId();
         
         if (!this.currentVideoId) {
-            console.log('[CommentScraper] No video ID found');
-            return;
+            console.log('[CommentScraper] No video ID found - cannot associate comments');
+            // Try to get any video ID from the page
+            const url = window.location.href;
+            const videoMatch = url.match(/\/video\/(\d{13,19})/);
+            if (videoMatch) {
+                this.currentVideoId = videoMatch[1];
+                console.log('[CommentScraper] Extracted video ID from URL:', this.currentVideoId);
+            } else {
+                console.log('[CommentScraper] URL:', url);
+                return;
+            }
         }
         
         console.log('[CommentScraper] Observing comments for video:', this.currentVideoId);
@@ -110,10 +153,8 @@ class CommentScraper {
     }
     
     _getCurrentVideoId() {
-        const urlMatch = window.location.href.match(/\/video\/(\d+)/);
-        if (urlMatch) return urlMatch[1];
-        
-        return this.extractor.getCurrentVideoId();
+        // Use unified extractor method - no duplicate URL parsing
+        return this.extractor.getVideoId(null, { useCache: false });
     }
     
     _debouncedScrape() {

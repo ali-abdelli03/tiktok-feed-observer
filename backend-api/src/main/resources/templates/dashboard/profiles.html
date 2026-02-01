@@ -2,85 +2,132 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
 <head>
-    <title>Creator Network • Observer</title>
+    <title>Creators • NEXUS</title>
 </head>
 <body>
 <div th:fragment="content">
-
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1">Creator Network</h2>
-            <p class="text-secondary m-0">Tracked profiles and influencer metrics.</p>
+            <h1 class="page-title">
+                <span class="text-gradient">Creators</span>
+            </h1>
+            <p class="page-subtitle">Creator profiles with audience and engagement metrics</p>
         </div>
-        <div class="d-flex gap-2">
-            <a th:href="@{/dashboard/profiles/top}" class="btn btn-sm btn-glow rounded-pill px-3">
-                <i class="bi bi-graph-up-arrow me-2"></i>Top Performers
-            </a>
+        <form class="d-flex gap-2" th:action="@{/dashboard/search}">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-transparent" style="border: 1px solid rgba(153, 69, 255, 0.3); border-right: none; background: rgba(18, 18, 28, 0.6) !important; border-radius: 10px 0 0 10px;">
+                    <i class="bi bi-search text-purple"></i>
+                </span>
+                <input type="text" name="q" class="form-control-cosmos" 
+                       placeholder="Search creators..." style="border-left: none; border-radius: 0 10px 10px 0; min-width: 200px;">
+                <input type="hidden" name="type" value="creators">
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-auto">
+            <div class="d-flex align-items-center gap-3 glass-panel py-2 px-4">
+                <span class="text-label mb-0">Total Creators</span>
+                <span class="font-display text-gradient" th:text="${profiles.totalElements}">0</span>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center gap-3 glass-panel py-2 px-4">
+                <span class="text-label mb-0">Page</span>
+                <span class="font-mono text-white">
+                    <span th:text="${profiles.number + 1}">1</span> / <span th:text="${profiles.totalPages}">1</span>
+                </span>
+            </div>
         </div>
     </div>
 
-    <div class="glass-panel p-0 overflow-hidden">
+    <!-- Profiles Table -->
+    <div class="glass-panel glow p-0">
         <div class="table-responsive">
-            <table class="table table-custom mb-0">
+            <table class="table table-cosmos mb-0">
                 <thead>
                 <tr>
-                    <th class="ps-4">Identity</th>
+                    <th class="ps-3">Creator</th>
                     <th>Display Name</th>
-                    <th>Audience</th>
-                    <th>Engagement</th>
-                    <th>Volume</th>
-                    <th class="text-end pe-4">Actions</th>
+                    <th>Followers</th>
+                    <th>Likes</th>
+                    <th>Videos</th>
+                    <th class="text-end pe-3">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="profile : ${profiles}">
-                    <td class="ps-4">
+                    <td class="ps-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg"
-                                 style="width: 42px; height: 42px; background: linear-gradient(135deg, #2d2d3a, #1a1a20); border: 1px solid #333; color: white; font-weight: 700;"
-                                 th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">
-                                A
-                            </div>
-                            <div class="d-flex flex-column">
-                                <div class="d-flex align-items-center gap-1">
-                                    <a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}"
-                                       class="text-white text-decoration-none fw-bold small"
-                                       th:text="${profile.platformHandle}">@handle</a>
-                                    <i th:if="${profile.isVerified}" class="bi bi-patch-check-fill text-gradient-purple" style="font-size: 0.8rem;"></i>
+                            <div class="d-flex align-items-center justify-content-center font-display"
+                                 style="width: 44px; height: 44px; background: var(--accent-gradient); border-radius: 50%; font-size: 1rem; color: #fff;"
+                                 th:text="${#strings.substring(profile.platformHandle, 0, 1).toUpperCase()}">A</div>
+                            <div>
+                                <a th:href="@{/dashboard/profiles/{h}(h=${profile.platformHandle})}" class="text-white">
+                                    <span th:text="${profile.platformHandle}">@handle</span>
+                                </a>
+                                <div th:if="${profile.isVerified}" class="d-flex align-items-center gap-1 mt-1">
+                                    <i class="bi bi-patch-check-fill text-purple" style="font-size: 0.75rem;"></i>
+                                    <span class="text-muted-custom" style="font-size: 0.65rem;">Verified</span>
                                 </div>
-                                <span class="text-tertiary" style="font-size: 0.65rem;">TIKTOK USER</span>
                             </div>
                         </div>
                     </td>
-                    <td class="text-secondary small" th:text="${profile.displayName ?: '-'}">-</td>
-                    <td class="font-mono text-white small">
-                        <span th:text="${profile.followerCount != null} ? ${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')} : '-'">-</span>
-                    </td>
-                    <td class="font-mono text-white small">
-                        <span th:text="${profile.likesCount != null} ? ${#numbers.formatInteger(profile.likesCount, 0, 'COMMA')} : '-'">-</span>
+                    <td>
+                        <span class="text-muted-custom" th:text="${profile.displayName ?: '—'}">—</span>
                     </td>
                     <td>
-                                <span class="badge bg-dark border border-secondary text-secondary font-mono fw-normal"
-                                      th:text="${profile.videoCount + ' videos'}">0 videos</span>
+                        <div class="font-mono text-white small" th:if="${profile.followerCount != null}">
+                            <i class="bi bi-people-fill text-purple me-1"></i>
+                            <span th:text="${#numbers.formatInteger(profile.followerCount, 0, 'COMMA')}">0</span>
+                        </div>
+                        <span th:unless="${profile.followerCount != null}" class="text-muted-custom">—</span>
                     </td>
-                    <td class="text-end pe-4">
-                        <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}"
-                           class="btn btn-sm btn-outline-secondary border-0 text-white hover-glow">
-                            <i class="bi bi-chevron-right"></i>
+                    <td>
+                        <div class="font-mono text-white small" th:if="${profile.likesCount != null}">
+                            <i class="bi bi-heart-fill text-pink me-1"></i>
+                            <span th:text="${#numbers.formatInteger(profile.likesCount, 0, 'COMMA')}">0</span>
+                        </div>
+                        <span th:unless="${profile.likesCount != null}" class="text-muted-custom">—</span>
+                    </td>
+                    <td>
+                        <span class="badge-cosmos badge-purple" th:text="${profile.videoCount + ' videos'}">0 videos</span>
+                    </td>
+                    <td class="text-end pe-3">
+                        <a th:href="@{/dashboard/profiles/{handle}(handle=${profile.platformHandle})}" class="btn-cosmos btn-sm">
+                            <i class="bi bi-arrow-right"></i>
                         </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(profiles.content)}">
+                    <td colspan="6" class="text-center text-muted-custom py-5">
+                        <i class="bi bi-person-x me-2" style="font-size: 2rem;"></i>
+                        <div class="mt-2">No creators tracked yet</div>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top border-secondary border-opacity-10">
-                <span class="text-tertiary small font-mono">
-                    Showing <span th:text="${profiles.numberOfElements}">0</span> of <span th:text="${profiles.totalElements}">0</span>
-                </span>
-            <div class="btn-group">
-                <a th:if="${profiles.hasPrevious()}" th:href="@{/dashboard/profiles(page=${profiles.number - 1})}" class="btn btn-sm btn-outline-secondary text-white">Prev</a>
-                <a th:if="${profiles.hasNext()}" th:href="@{/dashboard/profiles(page=${profiles.number + 1})}" class="btn btn-sm btn-outline-secondary text-white">Next</a>
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-top: 1px solid rgba(153, 69, 255, 0.1);">
+            <span class="font-mono small text-muted-custom">
+                Showing <span class="text-white" th:text="${profiles.numberOfElements}">0</span> of <span class="text-white" th:text="${profiles.totalElements}">0</span>
+            </span>
+            <div class="d-flex gap-2">
+                <a th:if="${profiles.hasPrevious()}" 
+                   th:href="@{/dashboard/profiles(page=${profiles.number - 1})}" 
+                   class="btn-cosmos btn-sm">
+                    <i class="bi bi-chevron-left me-1"></i> Prev
+                </a>
+                <a th:if="${profiles.hasNext()}" 
+                   th:href="@{/dashboard/profiles(page=${profiles.number + 1})}" 
+                   class="btn-cosmos btn-sm">
+                    Next <i class="bi bi-chevron-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>

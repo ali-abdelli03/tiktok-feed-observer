@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::content}, ~{::scripts})}">
+<head>
+    <title>Hashtags • NEXUS</title>
+</head>
+<body>
+
+<div th:fragment="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">
+                <span class="text-gradient">Hashtags</span>
+            </h1>
+            <p class="page-subtitle">Trend analysis and hashtag performance metrics</p>
+        </div>
+        <div class="d-flex gap-2">
+            <form class="d-flex gap-2" th:action="@{/dashboard/hashtags}">
+                <input type="text" name="q" class="form-control-cosmos form-control-sm" 
+                       placeholder="Search hashtags..." th:value="${query}" style="width: 220px;">
+                <button type="submit" class="btn-cosmos btn-sm">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card purple h-100 hover-lift">
+                <span class="text-label">Total Tags</span>
+                <div class="stat-value" th:text="${totalHashtags}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-hash text-purple"></i>
+                    <span class="text-muted-custom small">Unique hashtags</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card pink h-100 hover-lift">
+                <span class="text-label">Total Usage</span>
+                <div class="stat-value" th:text="${totalUsage}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-graph-up-arrow text-pink"></i>
+                    <span class="text-muted-custom small">Tag occurrences</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card gradient h-100 hover-lift">
+                <span class="text-label">Avg Per Video</span>
+                <div class="stat-value" th:text="${avgTagsPerVideo}">0</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-calculator text-purple"></i>
+                    <span class="text-muted-custom small">Tags per video</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card red h-100 hover-lift">
+                <span class="text-label">Top Tag</span>
+                <div class="stat-value font-mono" style="font-size: 1.2rem;" th:text="${topTag != null ? '#' + topTag : 'N/A'}">#fyp</div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <i class="bi bi-trophy-fill text-red"></i>
+                    <span class="text-muted-custom small">Most used</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Tag Cloud / Chart -->
+        <div class="col-lg-5">
+            <div class="glass-panel glow h-100">
+                <span class="text-label">Distribution</span>
+                <h5 class="mb-3 font-display text-white">Top 10 Hashtags</h5>
+                <div class="chart-container" style="height: 380px;">
+                    <canvas id="hashtagChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Hashtags Table -->
+        <div class="col-lg-7">
+            <div class="glass-panel glow p-0 h-100">
+                <div class="p-3 d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(153, 69, 255, 0.1);">
+                    <div>
+                        <span class="text-label">Rankings</span>
+                        <h5 class="mb-0 font-display text-white">Hashtag Performance</h5>
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                    <table class="table table-cosmos mb-0">
+                        <thead style="position: sticky; top: 0; background: var(--panel-bg); z-index: 1;">
+                        <tr>
+                            <th class="ps-3">Rank</th>
+                            <th>Hashtag</th>
+                            <th>Usage</th>
+                            <th class="text-end pe-3">Share</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="hashtag, iter : ${hashtags}">
+                            <td class="ps-3">
+                                <span class="font-display" 
+                                      th:classappend="${iter.index < 3 ? 'text-gradient' : 'text-muted-custom'}"
+                                      th:text="${iter.index + 1}">#1</span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-muted-custom">#</span>
+                                <span class="font-mono text-white" th:text="${hashtag.tag}">hashtag</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress-cosmos flex-grow-1" style="width: 100px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             th:style="'width: ' + ${hashtag.percentage} + '%'"></div>
+                                    </div>
+                                    <span class="font-mono small text-white" th:text="${hashtag.usageCount}">0</span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="badge-cosmos badge-purple" th:text="${hashtag.percentage + '%'}">0%</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(hashtags)}">
+                            <td colspan="4" class="text-center text-muted-custom py-4">
+                                <i class="bi bi-hash me-2"></i>No hashtags tracked yet
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:fragment="scripts">
+<script th:inline="javascript">
+    const topHashtags = /*[[${topHashtagsJson}]]*/ [];
+    
+    // Hashtag Chart (Horizontal Bar) - Deep Cosmos Theme
+    const hashtagCtx = document.getElementById('hashtagChart').getContext('2d');
+    
+    // Create gradient for bars
+    const barGradient = hashtagCtx.createLinearGradient(0, 0, 400, 0);
+    barGradient.addColorStop(0, '#ff2d78');
+    barGradient.addColorStop(0.5, '#9945ff');
+    barGradient.addColorStop(1, '#fe2c55');
+    
+    new Chart(hashtagCtx, {
+        type: 'bar',
+        data: {
+            labels: topHashtags.map(h => '#' + h.tag),
+            datasets: [{
+                data: topHashtags.map(h => h.usageCount),
+                backgroundColor: [
+                    'rgba(255, 45, 120, 0.85)',
+                    'rgba(153, 69, 255, 0.85)',
+                    'rgba(254, 44, 85, 0.85)',
+                    'rgba(255, 45, 120, 0.75)',
+                    'rgba(153, 69, 255, 0.75)',
+                    'rgba(254, 44, 85, 0.75)',
+                    'rgba(255, 45, 120, 0.65)',
+                    'rgba(153, 69, 255, 0.65)',
+                    'rgba(254, 44, 85, 0.65)',
+                    'rgba(255, 45, 120, 0.55)'
+                ],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { 
+                legend: { display: false }
+            },
+            scales: {
+                x: { 
+                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
+                },
+                y: { 
+                    grid: { display: false },
+                    ticks: { 
+                        font: { family: 'JetBrains Mono', size: 11 },
+                        color: '#9ca3af'
+                    }
+                }
+            }
+        }
+    });
+</script>
+</div>
+
+</body>
+</html>
