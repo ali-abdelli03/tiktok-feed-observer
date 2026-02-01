@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,4 +41,29 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     
     @Query("SELECT c.authorHandle, COUNT(c) FROM Comment c GROUP BY c.authorHandle ORDER BY COUNT(c) DESC")
     List<Object[]> findTopCommenters(Pageable pageable);
+    
+    /**
+     * Count comments per time bucket for timeline charts
+     */
+    @Query(value = "WITH time_buckets AS ( " +
+           "  SELECT generate_series(0, :bucketCount - 1) AS bucket " +
+           ") " +
+           "SELECT tb.bucket, COUNT(c.id) " +
+           "FROM time_buckets tb " +
+           "LEFT JOIN comment c ON " +
+           "  CASE " +
+           "    WHEN :range = '24h' THEN " +
+           "      c.captured_at >= CAST(:startTime AS TIMESTAMP) + (tb.bucket || ' hours')::interval " +
+           "      AND c.captured_at < CAST(:startTime AS TIMESTAMP) + ((tb.bucket + 1) || ' hours')::interval " +
+           "    ELSE " +
+           "      c.captured_at >= CAST(:startTime AS TIMESTAMP) + (tb.bucket || ' days')::interval " +
+           "      AND c.captured_at < CAST(:startTime AS TIMESTAMP) + ((tb.bucket + 1) || ' days')::interval " +
+           "  END " +
+           "GROUP BY tb.bucket " +
+           "ORDER BY tb.bucket", nativeQuery = true)
+    List<Object[]> countCommentsByTimeBucket(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("bucketCount") int bucketCount,
+            @Param("range") String range);
 }

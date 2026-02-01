@@ -581,4 +581,17 @@ public class DashboardController {
     public String getRequestURI(HttpServletRequest request) {
         return request.getRequestURI();
     }
+    
+    // ==================== REST API ENDPOINTS ====================
+    
+    /**
+     * API endpoint for real-time timeline data
+     * @param range Time range: "24h", "7d", or "30d"
+     * @return JSON with time-series data for charts
+     */
+    @GetMapping("/api/timeline")
+    @ResponseBody
+    public TimeSeriesDataDto getTimelineData(@RequestParam(defaultValue = "24h") String range) {
+        return analyticsService.getTimelineData(range);
+    }
 }

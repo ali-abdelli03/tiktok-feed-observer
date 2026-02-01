@@ -269,78 +269,120 @@
     // Data from server
     const stats = /*[[${stats}]]*/ {};
     
-    // Activity Chart (Line) - Deep Cosmos theme
-    const activityCtx = document.getElementById('activityChart').getContext('2d');
-    const gradient = activityCtx.createLinearGradient(0, 0, 0, 280);
-    gradient.addColorStop(0, 'rgba(153, 69, 255, 0.4)');
-    gradient.addColorStop(0.5, 'rgba(255, 45, 120, 0.2)');
-    gradient.addColorStop(1, 'rgba(254, 44, 85, 0)');
+    // Store chart instances globally for updates
+    let activityChart;
+    let currentTimeRange = '24h';
     
-    new Chart(activityCtx, {
-        type: 'line',
-        data: {
-            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'NOW'],
-            datasets: [{
-                label: 'Videos',
-                data: [
-                    Math.floor(stats.totalVideos * 0.1) || 2,
-                    Math.floor(stats.totalVideos * 0.15) || 4,
-                    Math.floor(stats.totalVideos * 0.25) || 6,
-                    Math.floor(stats.totalVideos * 0.4) || 10,
-                    Math.floor(stats.totalVideos * 0.6) || 15,
-                    Math.floor(stats.totalVideos * 0.8) || 20,
-                    stats.totalVideos || 25
-                ],
-                borderColor: '#9945ff',
-                backgroundColor: gradient,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#9945ff',
-                pointBorderColor: '#08080c',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }, {
-                label: 'Interactions',
-                data: [
-                    Math.floor(stats.totalInteractions * 0.05) || 1,
-                    Math.floor(stats.totalInteractions * 0.12) || 3,
-                    Math.floor(stats.totalInteractions * 0.22) || 5,
-                    Math.floor(stats.totalInteractions * 0.35) || 8,
-                    Math.floor(stats.totalInteractions * 0.55) || 12,
-                    Math.floor(stats.totalInteractions * 0.75) || 18,
-                    stats.totalInteractions || 22
-                ],
-                borderColor: '#ff2d78',
-                backgroundColor: 'transparent',
-                borderDash: [5, 5],
-                tension: 0.4,
-                pointRadius: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    align: 'end',
-                    labels: { 
-                        boxWidth: 12,
-                        font: { family: 'Space Grotesk', size: 11 }
+    // Activity Chart (Line) - Deep Cosmos theme
+    function initializeActivityChart(data) {
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        const gradient = activityCtx.createLinearGradient(0, 0, 0, 280);
+        gradient.addColorStop(0, 'rgba(153, 69, 255, 0.4)');
+        gradient.addColorStop(0.5, 'rgba(255, 45, 120, 0.2)');
+        gradient.addColorStop(1, 'rgba(254, 44, 85, 0)');
+        
+        const config = {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Videos',
+                    data: data.videos,
+                    borderColor: '#9945ff',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#9945ff',
+                    pointBorderColor: '#08080c',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }, {
+                    label: 'Interactions',
+                    data: data.interactions,
+                    borderColor: '#ff2d78',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    pointRadius: 3
+                }, {
+                    label: 'Comments',
+                    data: data.comments,
+                    borderColor: '#fe2c55',
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: { 
+                            boxWidth: 12,
+                            font: { family: 'Space Grotesk', size: 11 }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                        ticks: { font: { family: 'JetBrains Mono', size: 10 } }
+                    },
+                    y: { 
+                        grid: { color: 'rgba(153, 69, 255, 0.06)' },
+                        ticks: { font: { family: 'JetBrains Mono', size: 10 } }
                     }
                 }
-            },
-            scales: {
-                x: { 
-                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
-                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
-                },
-                y: { 
-                    grid: { color: 'rgba(153, 69, 255, 0.06)' },
-                    ticks: { font: { family: 'JetBrains Mono', size: 10 } }
-                }
             }
+        };
+        
+        if (activityChart) {
+            activityChart.destroy();
         }
+        activityChart = new Chart(activityCtx, config);
+    }
+    
+    // Fetch timeline data from API
+    function loadTimelineData(range) {
+        fetch(`/dashboard/api/timeline?range=${range}`)
+            .then(response => response.json())
+            .then(data => {
+                initializeActivityChart(data);
+                currentTimeRange = range;
+            })
+            .catch(error => {
+                console.error('Error loading timeline data:', error);
+                // Fall back to empty data
+                initializeActivityChart({
+                    labels: [],
+                    videos: [],
+                    interactions: [],
+                    comments: []
+                });
+            });
+    }
+    
+    // Initialize time filter buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeButtons = document.querySelectorAll('[data-range]');
+        
+        timeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                timeButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                // Load data for selected range
+                const range = this.getAttribute('data-range');
+                loadTimelineData(range);
+            });
+        });
+        
+        // Load initial data (24h)
+        loadTimelineData('24h');
     });
 
     // Content Type Chart (Doughnut)

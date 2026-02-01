@@ -145,4 +145,30 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
      */
     @Query("SELECT v FROM Video v WHERE v.place IS NOT NULL AND v.firstSeenAt >= :since ORDER BY v.firstSeenAt DESC")
     List<Video> findVideosWithPlacesSince(@Param("since") LocalDateTime since);
+    
+    /**
+     * Count videos per time bucket for timeline charts
+     * Returns [bucket_index, count] pairs
+     */
+    @Query(value = "WITH time_buckets AS ( " +
+           "  SELECT generate_series(0, :bucketCount - 1) AS bucket " +
+           ") " +
+           "SELECT tb.bucket, COUNT(v.id) " +
+           "FROM time_buckets tb " +
+           "LEFT JOIN video v ON " +
+           "  CASE " +
+           "    WHEN :range = '24h' THEN " +
+           "      v.first_seen_at >= CAST(:startTime AS TIMESTAMP) + (tb.bucket || ' hours')::interval " +
+           "      AND v.first_seen_at < CAST(:startTime AS TIMESTAMP) + ((tb.bucket + 1) || ' hours')::interval " +
+           "    ELSE " +
+           "      v.first_seen_at >= CAST(:startTime AS TIMESTAMP) + (tb.bucket || ' days')::interval " +
+           "      AND v.first_seen_at < CAST(:startTime AS TIMESTAMP) + ((tb.bucket + 1) || ' days')::interval " +
+           "  END " +
+           "GROUP BY tb.bucket " +
+           "ORDER BY tb.bucket", nativeQuery = true)
+    List<Object[]> countVideosByTimeBucket(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("bucketCount") int bucketCount,
+            @Param("range") String range);
 }
